@@ -2,6 +2,8 @@
 
 A SvelteKit UI for the Plone Catalog.
 
+Needs pyf.aggregator and a Typesense instance to work.
+
 
 ## Developing
 

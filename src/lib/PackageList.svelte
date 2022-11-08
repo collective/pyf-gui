@@ -17,7 +17,8 @@
 
 .package_list {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  /* flex-wrap: wrap; */
 }
 
 .results_count{

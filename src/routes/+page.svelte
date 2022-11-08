@@ -47,7 +47,7 @@
   @media (min-width: 640px) {
     main {
       max-width: 900px;
-      background-color: #fff;
+      background-color: rgb(251, 251, 251);
     }
   }
 
@@ -55,8 +55,4 @@
     display:flex
   }
 
-  .search-form{}
-  .search-filter{
-    display:flex
-  }
 </style>
