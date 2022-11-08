@@ -54,6 +54,7 @@ export function doSearch(term?:string, filter?:{}, ) {
     'sort_by': '_text_match:desc,name_sortable:asc,version_raw:desc',
     'group_by': 'name_sortable',
     'group_limit': 1,
+    'exclude_fields': 'description',
     'per_page': 100,
     'filter_by': filterString
   }
