@@ -11,17 +11,15 @@
 
 </script>
 
-<body>
-  <main>
-    <img src="images/plone-logo-128.png" alt="Plone logo" />
-    <h1>Plone Add-on Catalog</h1>
-    <div class="search">
-      <div class="search-form"><SearchForm /></div>
-    </div>
-    <div><PackageList /></div>
+<main>
+  <img src="pag-logo.png" alt="PAG Logo" />
+  <h1>Plone Add-on Gallery</h1>
+  <div class="search">
+    <div class="search-form"><SearchForm /></div>
+  </div>
+  <div><PackageList /></div>
 
-  </main>
-</body>
+</main>
 
 <style>
   body {
@@ -29,13 +27,13 @@
   }
   main {
     /* text-align: center; */
-    padding: 1em;
+    padding: min(1em, 1.2vw);
     max-width: 640px;
     margin: 0 auto;
   }
 
   h1 {
-    color: #ff3e00;
+    color: #ff6600ff;
     font-size: 1.8em;
     font-weight: 500;
   }
