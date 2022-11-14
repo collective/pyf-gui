@@ -49,7 +49,7 @@
       <label for="package_type">Package type</label>
       <select name="package_type" id="package_type" bind:value={package_type}>
         {#each package_types as ptype}
-          <option value={ptype.value} selected={ptype.default === true}>
+          <option value={ptype.value}>
             {ptype.title}
           </option>
         {/each}
