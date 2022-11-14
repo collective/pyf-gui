@@ -11,6 +11,7 @@
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "next",
+		"@sveltejs/adapter-node": "^1.0.0-next.100",
 		"@sveltejs/kit": "next",
 		"bootstrap": "^5.2.2",
 		"mdsvex": "^0.10.6",
