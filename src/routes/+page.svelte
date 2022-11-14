@@ -36,10 +36,16 @@
     color: #ff6600ff;
     font-size: 1.8em;
     font-weight: 500;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    text-align: center;
   }
 
   img {
     max-width: 100%;
+    width: 492px;
+    height: auto;
+    margin: 2rem auto;
+    display: block;
   }
 
   @media (min-width: 640px) {
@@ -53,4 +59,9 @@
     display:flex
   }
 
+  .search-form{
+    background-color: #0095d3;
+    padding: 0.8em;
+    width: 100%;
+  }
 </style>
