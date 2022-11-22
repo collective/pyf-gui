@@ -62,12 +62,12 @@ export function doSearch(term?: string, filter?: { package_type: '', plone_versi
     'group_by': 'name_sortable',
     'group_limit': 1,
     'per_page': 100,
+    'q': term,
     'collection': 'packages'
   }
   let searchRequests = {
     'searches': [
       {
-        'q': term,
         'query_by': 'name,keywords,summary,description',
         'sort_by': '_text_match:desc,name_sortable:asc,version_raw:desc',
         'facet_by': 'framework_versions,python_versions',
@@ -77,7 +77,7 @@ export function doSearch(term?: string, filter?: { package_type: '', plone_versi
   }
   if (filter && filter.plone_versions.length > 0) {
     let facetSearch = {
-      'q': '*',
+      'query_by': 'name,keywords,summary,description',
       'facet_by': 'framework_versions,python_versions',
       'filter_by': baseFilterString
     }

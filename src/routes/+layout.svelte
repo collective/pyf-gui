@@ -9,12 +9,14 @@
 
 <main>
   <slot />
+</main>
+<footer>
   <p
     style="text-align: center;font-family: Verdana, Geneva, Tahoma, sans-serif;"
   >
     This service brought to you by <a href="https://derico.de">Derico</a>
   </p>
-</main>
+</footer>
 
 <style lang="scss">
   body {
@@ -33,5 +35,12 @@
     margin: 0 auto;
     font-weight: 500;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
+  }
+  footer{
+    margin-top: 2em;
+    color: #ccc;
+    a{
+      color: #ccc;
+    }
   }
 </style>
