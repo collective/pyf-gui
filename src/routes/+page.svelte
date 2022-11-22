@@ -11,7 +11,6 @@
 
 </script>
 
-<main>
   <img src="pag-logo.png" alt="PAG Logo" />
   <h1>Plone Add-on Gallery</h1>
   <div class="search">
@@ -19,18 +18,8 @@
   </div>
   <div><PackageList /></div>
 
-</main>
 
 <style>
-  body {
-    background-color: rgb(246, 246, 246);
-  }
-  main {
-    /* text-align: center; */
-    padding: min(1em, 1.2vw);
-    max-width: 640px;
-    margin: 0 auto;
-  }
 
   h1 {
     color: #ff6600ff;

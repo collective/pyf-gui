@@ -1,61 +1,16 @@
 <script lang="ts">
+  import { getPloneVersions, getPythonVersions, getPackageType, toLocalizedTime } from '$lib/utils';
   import { browser } from "$app/environment";
   import collapse from "svelte-collapse";
 
   export let item = {} as any;
   let classifiersOpen = false;
 
-  function getPloneVersions(classifiers: []) {
-    const versions: [] = [];
-    classifiers.forEach((cf: string) => {
-      const regex = /^Framework :: Plone :: (?<version>\d+.*)$/im;
-      const found = cf.match(regex);
-      if (found && found.groups) {
-        versions.push(found.groups.version);
-      }
-    });
-    return versions;
-  }
-
-  function getPythonVersions(classifiers: []) {
-    let versions: [] = [];
-    classifiers.forEach((cf: string) => {
-      const regex = /^Programming Language :: Python :: (?<version>\d+.*)$/im;
-      const found = cf.match(regex);
-      if (found && found.groups) {
-        versions.push(found.groups.version);
-      }
-    });
-    return versions;
-  }
-
-  function getPackageType(classifiers: []) {
-    let packageType = "";
-    if (classifiers.indexOf("Framework :: Plone :: Addon") != -1) {
-      packageType = "Addon";
-    }
-    if (classifiers.indexOf("Framework :: Plone :: Core") != -1) {
-      packageType = "Core";
-    }
-    if (classifiers.indexOf("Framework :: Plone :: Theme") != -1) {
-      packageType = "Theme";
-    }
-    return packageType;
-  }
-
-  function toLocalizedTime(uts: number) {
-    if (!uts) {
-      return "";
-    }
-    const date = new Date(uts * 1000);
-    const options = { year: "numeric", month: "2-digit", day: "2-digit" };
-    return date.toLocaleDateString(undefined, options);
-  }
 </script>
 
 <div class="package effect2">
   <div class="info">
-    <h2>{item.name}</h2>
+    <h2><a href="/project/{item.id}">{item.name}</a></h2>
     <p>{item.summary}</p>
   </div>
   <div class="versions">
@@ -82,7 +37,7 @@
   </div>
   <div class="github">
     <div class="github_icon">
-      <a href={item.project_urls.Source} target="_blank"
+      <a href={item.github_url} target="_blank"
         ><svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -266,6 +221,7 @@
       }
       ul {
         display: flex;
+        flex-wrap: wrap;
         list-style-type: none;
         margin: 0;
         padding: 0 0.5em;
@@ -301,6 +257,7 @@
     .github_data {
       flex-grow: 3;
       display: flex;
+      flex-wrap: wrap;
       flex-direction: row;
       padding-left: 1em;
       > div {
