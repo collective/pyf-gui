@@ -58,7 +58,7 @@
       </div>
       <div class="field python_version">
         <label for="package_type">Package type</label>
-        <select name="package_type" id="package_type" bind:value={package_type}>
+        <select class="form-select form-select-sm" name="package_type" id="package_type" bind:value={package_type}>
           {#each package_types as ptype}
             <option value={ptype.value}>
               {ptype.title}
@@ -71,6 +71,12 @@
 </div>
 
 <style lang="scss">
+  label, .label{
+    font-size: 1rem;
+    font-weight: bold;
+    color: whitesmoke;
+    padding: 0.5em 0 0.2em 0;
+  }
   form {
     // display: flex;
     // .field {
