@@ -59,7 +59,7 @@ export function doSearch(term?: string, filter?: { package_type: '', plone_versi
 
   let commonSearchParams = {
     'exclude_fields': 'description',
-    'group_by': 'identifier',
+    'group_by': 'name_sortable',
     'group_limit': 1,
     'per_page': 100,
     'q': term,
