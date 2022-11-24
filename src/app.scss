@@ -69,37 +69,25 @@
 
 /* Write your global styles here, in SCSS syntax. Variables and mixins from the src/variables.scss file are available here without importing */
 
+body {
+  background-color: #fff;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  display: grid;
+  column-gap: 1em;
+  grid-template-columns: 1fr clamp(24ch, 28ch, 30ch) clamp(60ch, 90ch, 110ch) 1fr;
+  grid-template-rows: auto;
+  grid-template-areas:
+    "header header header header"
+    ". sidebar content ."
+    "footer footer footer footer";
 
-// h1 {
-// 	margin-top: 0;
-// }
+  // sections in PyPi description HTML content
+  .section{
+    padding: 1em 0;
+    img{
+      padding: 0.5em 0;
+    }
+  }
 
-// h2 {
-// 	margin-top: 1em;
-// }
 
-// h3 {
-// 	margin-top: 0.5em;
-// }
-// .card-group{
-// 	display: flex;
-// 	flex-direction: column;
-// 	gap: 1em;
-// 	// flex-wrap: wrap;
-// }
-
-// .card-hz-left.card {
-// 	flex-direction: row;
-// 	img {
-// 		border-bottom-left-radius: 0.25rem !important;
-// 		border-top-left-radius: 0.25rem !important;
-// 	}
-// }
-
-// .card-hz-right.card {
-// 	flex-direction: row-reverse;
-// 	img {
-// 		border-bottom-right-radius: 0.25rem !important;
-// 		border-top-right-radius: 0.25rem !important;
-// 	}
-// }
+}

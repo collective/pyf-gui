@@ -6,51 +6,26 @@
 
   // onDestroy(unsub_search_term);
   // onDestroy(unsub_search_filter);
-
-
-
 </script>
 
-  <img src="pag-logo.png" alt="PAG Logo" />
-  <h1>Plone Add-on Gallery</h1>
-  <div class="search">
-    <div class="search-form"><SearchForm /></div>
-  </div>
-  <div><PackageList /></div>
-
+<aside><SearchForm /></aside>
+<article><PackageList /></article>
 
 <style>
 
-  h1 {
-    color: #ff6600ff;
-    font-size: 1.8em;
-    font-weight: 500;
-    font-family: Verdana, Geneva, Tahoma, sans-serif;
-    text-align: center;
+  aside {
+    grid-area: sidebar;
+    /* background-color: #0095d3; */
+    padding: 1em 1em 1.5em 1em;
+    max-width: 26ch;
   }
-
-  img {
-    max-width: 100%;
-    width: 492px;
-    height: auto;
-    margin: 2rem auto;
-    display: block;
-  }
-
-  @media (min-width: 640px) {
-    main {
-      max-width: 900px;
-      background-color: rgb(251, 251, 251);
-    }
-  }
-
-  .search{
-    display:flex
-  }
-
-  .search-form{
-    background-color: #0095d3;
-    padding: 0.8em;
-    width: 100%;
+  article{
+    grid-area: content;
+    max-width: 100ch;
+    padding-bottom: 2em 1em 1.5em 1em;
+    /* padding: MIN(1em, 1.2vw);
+    max-width: 640px;
+    margin: 0 auto;
+    font-weight: 500; */
   }
 </style>

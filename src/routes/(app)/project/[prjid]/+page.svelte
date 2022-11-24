@@ -6,15 +6,14 @@
     toLocalizedTime,
   } from "$lib/utils";
   export let data = {};
-  $: console.log(data);
+  // $: console.log(data);
 </script>
 
-<main>
   <!-- <div class="info">
     <h1>{data.name}</h1>
     <p>{data.summary}</p>
   </div> -->
-  <div class="metadata">
+  <aside class="package">
     <div class="versions">
       <div class="plone_versions">
         <div class="icon">
@@ -131,17 +130,27 @@
       keywords: {data.keywords}
     </div>
     <div class="type">Type: {getPackageType(data.classifiers)}</div>
-  </div>
-  <div class="description">
+  </aside>
+  <article class="description">
     {@html data.description}
-  </div>
-</main>
+  </article>
 
 <style lang="scss">
-  .box-effect {
-    -webkit-box-shadow: 0 10px 6px -6px #777;
-    -moz-box-shadow: 0 10px 6px -6px #777;
-    box-shadow: 0 10px 6px -6px #777;
+  // .box-effect {
+  //   -webkit-box-shadow: 0 10px 6px -6px #777;
+  //   -moz-box-shadow: 0 10px 6px -6px #777;
+  //   box-shadow: 0 10px 6px -6px #777;
+  // }
+
+  aside {
+    --box-padding: 0.8em;
+    grid-area: sidebar;
+    /* background-color: #0095d3; */
+    padding: 2em 0 2em 0;
+  }
+  article{
+    grid-area: content;
+    padding: 2em;
   }
 
   .info {
@@ -158,7 +167,7 @@
   .versions {
     grid-area: versions;
     background-color: #faeca2;
-    color: #333;
+    color: var(--fbc-primary-text);
     padding: var(--box-padding) var(--box-padding) 0.2em 0.2em;
     p {
       margin: 0.2em 0;
@@ -192,11 +201,11 @@
     grid-area: github;
     padding: var(--box-padding);
     background-color: #eee;
-    color: #333;
+    color: var(--fbc-primary-text);
     font-size: 0.9em;
     display: flex;
     a {
-      color: #333;
+      color: var(--fbc-primary-text);
     }
     svg {
       width: auto;

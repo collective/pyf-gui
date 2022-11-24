@@ -10,7 +10,7 @@
 
 <div class="package effect2">
   <div class="info">
-    <h2><a href="/project/{item.id}">{item.name}</a></h2>
+    <h2><a href="/project/{item.id}">{item.name}</a> ({item.version})</h2>
     <p>{item.summary}</p>
   </div>
   <div class="versions">
@@ -193,7 +193,11 @@
     padding: var(--box-padding);
     h2 {
       margin: 0 0 0.4em 0;
-      font-size: 1.1rem;
+      font-size: 1.4rem;
+      font-weight: 600;
+      a{
+        text-decoration: none;
+      }
     }
     p {
       margin: 0.2em 0;
@@ -277,12 +281,15 @@
   .keywords {
     grid-area: keywords;
     padding: 0.3em var(--box-padding);
+    color: var(--fbc-secondary-text);
   }
   .type {
     grid-area: type;
     padding: 0.3em var(--box-padding) var(--box-padding) var(--box-padding);
+    color: var(--fbc-secondary-text);
   }
   .classifiers {
+    display: none;
     grid-area: classifiers;
     padding: var(--box-padding);
     cursor: pointer;

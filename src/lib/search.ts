@@ -59,7 +59,7 @@ export function doSearch(term?: string, filter?: { package_type: '', plone_versi
 
   let commonSearchParams = {
     'exclude_fields': 'description',
-    'group_by': 'name_sortable',
+    'group_by': 'identifier',
     'group_limit': 1,
     'per_page': 100,
     'q': term,
@@ -69,7 +69,7 @@ export function doSearch(term?: string, filter?: { package_type: '', plone_versi
     'searches': [
       {
         'query_by': 'name,keywords,summary,description',
-        'sort_by': '_text_match:desc,name_sortable:asc,version_raw:desc',
+        'sort_by': '_text_match:desc,name_sortable:asc,version_sortable:desc',
         'facet_by': 'framework_versions,python_versions',
         'filter_by': filterString
       }
