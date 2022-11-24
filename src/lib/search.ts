@@ -69,7 +69,7 @@ export function doSearch(term?: string, filter?: { package_type: '', plone_versi
     'searches': [
       {
         'query_by': 'name,keywords,summary,description',
-        'sort_by': '_text_match:desc,name_sortable:desc,version_sortable:desc',
+        'sort_by': '_text_match:desc,name_sortable:asc,version_sortable:desc',
         'facet_by': 'framework_versions,python_versions',
         'filter_by': filterString
       }
