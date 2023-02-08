@@ -11,6 +11,18 @@ export function getPloneVersions(classifiers: []) {
     return versions;
 }
 
+export function compactPloneVersions(ploneVersions: []) {
+    const versions: [] = [];
+    ploneVersions.forEach((cf: string) => {
+        const regex = /^Plone\s+(?<version>\d+.*)$/im;
+        const found = cf.match(regex);
+        if (found && found.groups) {
+            versions.push(found.groups.version);
+        }
+    });
+    return `${versions.join(', ')}`;
+}
+
 export function getPythonVersions(classifiers: []) {
     let versions: [] = [];
     classifiers.forEach((cf: string) => {
@@ -21,6 +33,18 @@ export function getPythonVersions(classifiers: []) {
         }
     });
     return versions;
+}
+
+export function compactPythonVersions(ploneVersions: []) {
+    const versions: [] = [];
+    ploneVersions.forEach((cf: string) => {
+        const regex = /^Python\s+(?<version>\d+.*)$/im;
+        const found = cf.match(regex);
+        if (found && found.groups) {
+            versions.push(found.groups.version);
+        }
+    });
+    return `${versions.join(', ')}`;
 }
 
 export function getPackageType(classifiers: []) {
