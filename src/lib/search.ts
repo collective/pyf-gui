@@ -21,6 +21,7 @@ export let searchClient = new Client({
 })
 
 
+
 export function doSearch(term?: string, filter?: { package_type: '', plone_versions: [] },) {
   let classifiers = ["Framework :: Plone"];
   if (filter && filter.package_type) {

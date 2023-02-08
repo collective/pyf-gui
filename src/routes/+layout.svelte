@@ -46,17 +46,22 @@
     }
     .logo-headline {
       background-color: var(--bs-secondary);
-      padding: 2em 0;
+      padding: min(2em, 1.5vh) 0;
       display: flex;
       flex-direction: column;
       font-weight: 600;
       #logo{
-        padding-bottom: 1em;
+        img{
+          max-width: 90vw;
+        }
+        padding-bottom: min(1em, 1.5vh);
+
       }
       #logo,
       h1 {
         text-align: center;
         color: #ff6600;
+        margin-bottom: 0.1em;
       }
     }
   }
@@ -66,7 +71,7 @@
 
   footer {
     grid-area: footer;
-    padding-top: 1em;
+    padding: 1em 0.4em;
     color: #fff;
     background-color: var(--bs-primary);
     a {
@@ -75,8 +80,8 @@
   }
 
   // wider screens:
-  @media (min-width: 640px) {
-    footer {
-    }
-  }
+  // @media (min-width: 640px) {
+  //   footer {
+  //   }
+  // }
 </style>

@@ -16,16 +16,22 @@
   aside {
     grid-area: sidebar;
     /* background-color: #0095d3; */
-    padding: 1em 1em 1.5em 1em;
+    padding: min(1em, 1vh) 1em min(1em, 2vh) 1em;
     max-width: 26ch;
   }
   article{
     grid-area: content;
-    max-width: 100ch;
     padding-bottom: 2em 1em 1.5em 1em;
     /* padding: MIN(1em, 1.2vw);
     max-width: 640px;
     margin: 0 auto;
     font-weight: 500; */
+  }
+  @media (min-width: 640px) {
+    aside{
+    max-width: 100ch;
+      /* padding: 1em 1em 1.5em 1em; */
+    }
+
   }
 </style>

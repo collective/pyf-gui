@@ -85,12 +85,12 @@
     font-size: 1rem;
     font-weight: bold;
     color: #333;
-    padding: 0.5em 0 0.1em 0;
-    margin: 0.5em 0 0.8em 0;
+    padding: min(0.5em, 1vh) 0 min(0.5vh, 0.1em) 0;
+    margin: min(0.5em, 1vh) 0 min(0.5vh, 0.8em) 0;
   }
   .field{
     border-bottom: 2px solid #d3d3d3;
-    padding: 0.2em 0 2.2em 0;
+    padding: 0.2em 0 min(2.2em, 3vh) 0;
   }
   form {
     // display: flex;

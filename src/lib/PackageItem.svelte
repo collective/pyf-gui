@@ -6,11 +6,18 @@
   export let item = {} as any;
   let classifiersOpen = false;
 
+  function toLocalizedDate(datetime){
+    if (!datetime) { return "" }
+    return new Date(datetime).toLocaleDateString()
+  }
+
 </script>
 
 <div class="package effect2">
   <div class="info">
-    <h2><a href="/project/{item.id}">{item.name}</a> ({item.version})</h2>
+
+    <div class="title"><h2><a href="/project/{item.id}">{item.name}</a></h2> <span class="title-metadata">{item.version} - {toLocalizedDate(item.upload_timestamp)}</span></div>
+
     <p>{item.summary}</p>
   </div>
   <div class="versions">
@@ -169,6 +176,17 @@
       "keywords"
       "type"
       "classifiers";
+    .title{
+      margin-bottom: 0.5em;
+      h2{
+        display: block;
+        margin-bottom: 0;
+      }
+      .title-metadata{
+        font-size: 80%;
+        color: #777;
+      }
+    }
   }
 
   @media (min-width: 800px) {

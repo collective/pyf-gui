@@ -6,7 +6,7 @@
     toLocalizedTime,
   } from "$lib/utils";
   export let data = {};
-  // $: console.log(data);
+  $: console.log(data);
 </script>
 
   <!-- <div class="info">
