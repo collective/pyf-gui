@@ -6,9 +6,9 @@ export const default_plone_versions = [
 ];
 
 export const default_package_types = [
-  "Framework :: Plone :: Addon",
-  "Framework :: Plone :: Theme",
-  "Framework :: Plone :: Distribution"
+  // "Framework :: Plone :: Addon",
+  // "Framework :: Plone :: Theme",
+  // "Framework :: Plone :: Distribution"
 ];
 
 export const package_types = [
