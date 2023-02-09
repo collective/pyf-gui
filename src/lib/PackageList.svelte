@@ -7,23 +7,28 @@
 <div class="results_count">We found: {$results_count} Plone add-on's</div>
 <div class="package_list">
   {#each $package_list as item}
-  {#if (item.hits != undefined && item.hits.length >= 1)}
-    <PackageItem item={item.hits[0].document} />
-  {/if}
+    {#if item.hits != undefined && item.hits.length >= 1}
+      <PackageItem item={item.hits[0].document} />
+    {/if}
   {/each}
 </div>
 
 <style>
+  .package_list {
+    display: flex;
+    flex-direction: column;
+    /* flex-wrap: wrap; */
+  }
 
-.package_list {
-  display: flex;
-  flex-direction: column;
-  /* flex-wrap: wrap; */
-}
-
-.results_count{
-  padding: 1em 0;
-  font-style: italic;
-  font-size: 1.4em;
-}
+  .results_count {
+    padding: 1em 0;
+    font-style: italic;
+    font-size: 1.4em;
+  }
+  @media (max-width: 640px) {
+    .results_count {
+      padding: 1em 0.5em;
+      font-size: 1.2em;
+    }
+  }
 </style>

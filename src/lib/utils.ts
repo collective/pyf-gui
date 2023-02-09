@@ -59,6 +59,9 @@ export function getPackageType(classifiers: []) {
     if (classifiers.indexOf("Framework :: Plone :: Theme") != -1) {
         packageType = "Theme";
     }
+    if (classifiers.indexOf("Framework :: Plone :: Distribution") != -1) {
+        packageType = "Distribution";
+    }
     return packageType;
 }
 

@@ -1,28 +1,39 @@
 <script lang="ts">
   import { doSearch } from "./search";
   import { package_types } from "./settings";
+  import { default_plone_versions } from "./settings";
+  import { default_package_types } from "./settings";
   import { plone_versions } from "$lib/stores";
+  import { getPackageType } from "$lib/utils";
   import type { Filter } from "$lib/interfaces";
 
   let term = "";
-  // let plone_versions:[] = [];
-  // let python_versions:[] = [];
-  let pVersions: string[] = [];
-  let package_type = package_types[0].value;
+  let showPloneVersionsFilter = true;
+  // let pVersions: string[] = [];
+  let pVersions: string[] = default_plone_versions;
+  let pTypes: string[] = default_package_types;
+  // let package_types: string[] = [] ; //package_types[0].value;
 
   let filter: Filter = {
-    plone_versions: [],
-    package_type: "",
+    plone_versions: pVersions,
+    package_types: pTypes,
   };
 
   $: {
     filter.plone_versions = pVersions;
-    filter.package_type = package_type;
+    filter.package_types = pTypes;
+    console.log(`pversions: ${pVersions}`);
+    console.log(`ptypes: ${pTypes}`);
     doSearch(term, filter);
   }
 
+  function isDefaultVersion(value) {
+    if (default_plone_versions.indexOf(value) != -1) {
+      return true;
+    }
+    return false;
+  }
   function handleSubmit() {
-    // search_term.set(term);
     doSearch();
   }
 </script>
@@ -41,38 +52,50 @@
     </div>
     <div class="filters">
       <div class="field plone_version">
-        <div class="label">Plone version</div>
-        {#each $plone_versions as version, i}
-          {#if version.value.startsWith("Plone")}
-            <div class="form-check form-check-inline form-switch">
-              <input
-                bind:group={pVersions}
-                class="form-check-input"
-                type="checkbox"
-                id="plone_version_{i}"
-                value={version.value}
-              />
-              <lable class="form-check-label" for="plone_version_{i}">
-                {version.value} ({version.count})
-              </lable>
-            </div>
+        <div class="label clickable" on:click={() => showPloneVersionsFilter = !showPloneVersionsFilter}>
+          Plone version {#if !showPloneVersionsFilter}<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+          </svg>
+          {/if}{#if showPloneVersionsFilter}<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-up" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"/>
+          </svg>
           {/if}
-        {/each}
-      </div>
-      <div class="field python_version">
-        <label for="package_type">Package type</label>
-        <select
-          class="form-select form-select-sm"
-          name="package_type"
-          id="package_type"
-          bind:value={package_type}
-        >
-          {#each package_types as ptype}
-            <option value={ptype.value}>
-              {ptype.title}
-            </option>
+        </div>
+        {#if showPloneVersionsFilter}
+          {#each $plone_versions as version, i}
+            {#if version.value.startsWith("Plone")}
+              <div class="form-check form-check-inline form-switch">
+                <input
+                  bind:group={pVersions}
+                  class="form-check-input"
+                  type="checkbox"
+                  id="plone_version_{i}"
+                  value={version.value}
+                />
+                <lable class="form-check-label" for="plone_version_{i}">
+                  {version.value.replace("Plone ", "")} ({version.count})
+                </lable>
+              </div>
+            {/if}
           {/each}
-        </select>
+        {/if}
+      </div>
+      <div class="field package_types">
+        <label for="package_type">Package types</label>
+        {#each package_types as ptype, i}
+          <div class="form-check form-check-inline form-switch">
+            <input
+              bind:group={pTypes}
+              class="form-check-input"
+              type="checkbox"
+              id="package_type_{i}"
+              value={ptype.value}
+            />
+            <lable class="form-check-label" for="package_type_{i}">
+              {ptype.title}
+            </lable>
+          </div>
+        {/each}
       </div>
     </div>
   </form>
@@ -88,7 +111,10 @@
     padding: min(0.5em, 1vh) 0 min(0.5vh, 0.1em) 0;
     margin: min(0.5em, 1vh) 0 min(0.5vh, 0.8em) 0;
   }
-  .field{
+  .clickable{
+    cursor: pointer;
+  }
+  .field {
     border-bottom: 2px solid #d3d3d3;
     padding: 0.2em 0 min(2.2em, 3vh) 0;
   }

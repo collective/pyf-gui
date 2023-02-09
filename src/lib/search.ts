@@ -1,7 +1,7 @@
 import { package_list } from "./stores";
 import { results_count } from "./stores";
 import { plone_versions } from "./stores";
-import { python_versions } from "./stores";
+// import { python_versions } from "./stores";
 import { Client } from "typesense";
 import { PUBLIC_SEARCH_PROTOCOL } from '$env/static/public';
 import { PUBLIC_SEARCH_HOST } from '$env/static/public';
@@ -22,41 +22,60 @@ export let searchClient = new Client({
 
 
 
-export function doSearch(term?: string, filter?: { package_type: '', plone_versions: [] },) {
+export function doSearch(term?: string, filter?: { package_types: [], plone_versions: [] },) {
+  // debugger
+  console.log(`filter: ${JSON.stringify(filter)}`)
   let classifiers = ["Framework :: Plone"];
-  if (filter && filter.package_type) {
-    classifiers.push(filter.package_type);
+  if (filter && filter.package_types.length > 0) {
+    classifiers = filter.package_types;
+    // filter.package_types.forEach((classifier) => {
+    //   classifiers.push(classifier)
+    // });
   }
-  if (term == "" && (filter && (filter.package_type == undefined && filter.plone_versions == undefined))) { return }
-  if (filter && (filter.package_type != undefined || filter.plone_versions != undefined)) {
+  if (term == "" && (filter && (filter.package_types == undefined && filter.plone_versions == undefined))) { return }
+  if (filter && (filter.package_types != undefined || filter.plone_versions != undefined)) {
     term = term || "*"
   }
-  let pVersions = [];
-  if (filter && filter.plone_versions) {
-    pVersions.push(filter.plone_versions);
-  }
+  // let pVersions = [];
+  // if (filter && filter.plone_versions) {
+  //   pVersions.push(filter.plone_versions);
+  // }
   let filterString = "";
-  classifiers.forEach((classifier, key, arr) => {
-    filterString += `classifiers:=${classifier}`
-    if (!Object.is(arr.length - 1, key)) {
-      filterString += ' && '
-    }
-  });
+  // classifiers.forEach((classifier, key, arr) => {
+  //   filterString += `classifiers:=${classifier}`
+  //   if (!Object.is(arr.length - 1, key)) {
+  //     filterString += ' && '
+  //   }
+  // });
   let baseFilterString = filterString;
+
   // build plone_versions filter string:
   if (filter && filter.plone_versions.length > 0) {
     if (filterString) {
       filterString += ' && ';
     }
-    let filterListString = ""
+    let fvFilterListString = ""
     filter.plone_versions.forEach((version, key, arr) => {
-      filterListString += `'${version}'`;
+      fvFilterListString += `'${version}'`;
       if (!Object.is(arr.length - 1, key)) {
-        filterListString += ',';
+        fvFilterListString += ',';
       }
     });
-    filterString += `framework_versions:=[${filterListString}]`;
+    filterString += `framework_versions:=[${fvFilterListString}]`;
   }
+
+  // build package_types filter string:
+  if (filterString) {
+    filterString += ' && ';
+  }
+  let ptFilterListString = ""
+  classifiers.forEach((version, key, arr) => {
+    ptFilterListString += `'${version}'`;
+    if (!Object.is(arr.length - 1, key)) {
+      ptFilterListString += ',';
+    }
+  });
+  filterString += `classifiers:=[${ptFilterListString}]`;
 
   let commonSearchParams = {
     'exclude_fields': 'description',
