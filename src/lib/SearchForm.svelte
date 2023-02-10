@@ -160,5 +160,10 @@
     //   background-size: 16px 12px;
     // }
     // }
+    .search{
+      input{
+        min-width: 94vw;
+      }
+    }
   }
 </style>
