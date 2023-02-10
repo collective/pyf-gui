@@ -22,8 +22,8 @@
   $: {
     filter.plone_versions = pVersions;
     filter.package_types = pTypes;
-    console.log(`pversions: ${pVersions}`);
-    console.log(`ptypes: ${pTypes}`);
+    // console.log(`pversions: ${pVersions}`);
+    // console.log(`ptypes: ${pTypes}`);
     doSearch(term, filter);
   }
 
@@ -52,8 +52,14 @@
     </div>
     <div class="filters">
       <div class="field plone_version">
-        <div class="label clickable" on:click={() => showPloneVersionsFilter = !showPloneVersionsFilter}>
-          Plone version {#if !showPloneVersionsFilter}<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+        <div class="label clickable"
+            on:click={() => showPloneVersionsFilter = !showPloneVersionsFilter}
+            on:keypress={() => showPloneVersionsFilter = !showPloneVersionsFilter}
+            role="button"
+            aria-expanded="true"
+            aria-controls="plone-versions-filter"
+            tabindex="0">
+          Plone versions {#if !showPloneVersionsFilter}<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
           </svg>
           {/if}{#if showPloneVersionsFilter}<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-up" viewBox="0 0 16 16">
@@ -61,7 +67,7 @@
           </svg>
           {/if}
         </div>
-        {#if showPloneVersionsFilter}
+        <div id="plone-versions-filter" class={showPloneVersionsFilter ? 'show' : ''}>
           {#each $plone_versions as version, i}
             {#if version.value.startsWith("Plone")}
               <div class="form-check form-check-inline form-switch">
@@ -78,7 +84,7 @@
               </div>
             {/if}
           {/each}
-        {/if}
+        </div>
       </div>
       <div class="field package_types">
         <label for="package_type">Package types</label>
@@ -117,6 +123,12 @@
   .field {
     border-bottom: 2px solid #d3d3d3;
     padding: 0.2em 0 min(2.2em, 3vh) 0;
+  }
+  #plone-versions-filter{
+    display: none;
+    &.show{
+      display: block;
+    }
   }
   form {
     // display: flex;
