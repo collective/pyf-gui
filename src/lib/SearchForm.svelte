@@ -162,7 +162,7 @@
     // }
     .search{
       input{
-        min-width: 94vw;
+        min-width: 100%;
       }
     }
   }
