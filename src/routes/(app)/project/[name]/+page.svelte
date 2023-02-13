@@ -8,13 +8,13 @@
     toLocalizedTime,
   } from "$lib/utils";
   export let data = {};
-  $: console.log(data);
+  // $: console.log(data);
 </script>
 
 <aside class="package">
   <div class="github">
     <div class="github_icon">
-      <a href={data.hit.github_url} target="_blank"
+      <a href={data.hit.github_url} target="_blank" title="open project page on GitHub"
         ><svg
           xmlns="http://www.w3.org/2000/svg"
           width="16"
@@ -103,7 +103,7 @@
     </div>
   </div>
   <div class="versions">
-      <div class="sidebar-label">Releases</div>
+      <div class="sidebar-label">Releases on <a href="{data.hit.project_url}" target="_blank" title="open project page on PyPi">PyPi</a></div>
       <ul class="releases">
         {#each data.releases as release}
           <li>
@@ -121,7 +121,7 @@
                   d="M15.528 2.973a.75.75 0 0 1 .472.696v8.662a.75.75 0 0 1-.472.696l-7.25 2.9a.75.75 0 0 1-.557 0l-7.25-2.9A.75.75 0 0 1 0 12.331V3.669a.75.75 0 0 1 .471-.696L7.443.184l.004-.001.274-.11a.75.75 0 0 1 .558 0l.274.11.004.001 6.971 2.789Zm-1.374.527L8 5.962 1.846 3.5 1 3.839v.4l6.5 2.6v7.922l.5.2.5-.2V6.84l6.5-2.6v-.4l-.846-.339Z"
                 />
               </svg>
-              {release.version}
+              <a href="{data.hit.project_url}{release.version}" target="_blank">{release.version}</a>
             </div>
             <div class="release-versions">
               <div class="plone icon">
@@ -177,6 +177,9 @@
     font-weight: bold;
     padding-left: 0.4rem;
     border-bottom: 2px solid #777;
+    a{
+      text-decoration: none;
+    }
   }
 
   .info {

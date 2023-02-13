@@ -6,6 +6,7 @@
   <nav>
     <a href="/">Home</a>
     <a href="/about">About</a>
+    <a href="/help">Help</a>
     <!-- <a href="/settings">Settings</a> -->
   </nav>
   <div class="logo-headline">
