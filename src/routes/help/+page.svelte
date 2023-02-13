@@ -1,7 +1,7 @@
 <article>
   <h1>Help</h1>
 
-  All infos on this service is aggregated from PyPi, GitHub and co.
+  All infos on this service are aggregated from PyPi, GitHub and co.
   To make your Plone package look good, you can make sure that you defined the following PyPi classifieres.
 
   For supported Plone versions:
