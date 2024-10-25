@@ -25,7 +25,7 @@
   <p
     style="text-align: center;font-family: Verdana, Geneva, Tahoma, sans-serif;"
   >
-    This service is brought to you by <a href="https://derico.de">Derico</a>
+    This service is brought to you by <a href="https://derico.de">Derico</a>.
   </p>
 </footer>
 
