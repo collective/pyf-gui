@@ -9,14 +9,12 @@
 
 <pre>
 "Framework :: Plone",
-"Framework :: Plone :: 5.2",
-"Framework :: Plone :: 6.0",</pre>
+"Framework :: Plone :: 6.0",
+"Framework :: Plone :: 6.1",</pre>
 
   For supported Python versions:
 
 <pre>"Programming Language :: Python",
-"Programming Language :: Python :: 3.8",
-"Programming Language :: Python :: 3.9",
 "Programming Language :: Python :: 3.10",
 "Programming Language :: Python :: 3.11",
 "Programming Language :: Python :: 3.12",</pre>
