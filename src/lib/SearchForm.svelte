@@ -44,7 +44,7 @@
       <div class="label">Search</div>
       <input
         type="text"
-        placeholder="Packagename.."
+        placeholder="Enter add-on name"
         spellcheck="false"
         name="text"
         bind:value={term}
@@ -87,7 +87,7 @@
         </div>
       </div>
       <div class="field package_types">
-        <label for="package_type">Package types</label>
+        <label for="package_type">Add-on types</label>
         {#each package_types as ptype, i}
           <div class="form-check form-check-inline form-switch">
             <input
