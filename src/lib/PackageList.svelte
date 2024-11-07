@@ -4,7 +4,7 @@
   import PackageItem from "$lib/PackageItem.svelte";
 </script>
 
-<div class="results_count">We found: {$results_count} Plone packages</div>
+<div class="results_count">We found: {$results_count} Plone add-ons</div>
 <div class="package_list">
   {#each $package_list as item}
     {#if item.hits != undefined && item.hits.length >= 1}
