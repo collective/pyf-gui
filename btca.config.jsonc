@@ -1,0 +1,72 @@
+{
+    "$schema": "https://btca.dev/btca.schema.json",
+    "resources": [
+        {
+            "name": "svelte",
+            "type": "git",
+            "url": "https://github.com/sveltejs/svelte.dev",
+            "branch": "main",
+            "searchPath": "apps/svelte.dev/content",
+            "specialNotes": "Svelte 5 documentation. Focus on docs for runes, reactivity, and component patterns."
+        },
+        {
+            "name": "svelteKit",
+            "type": "git",
+            "url": "https://github.com/sveltejs/kit",
+            "branch": "main",
+            "searchPath": "documentation",
+            "specialNotes": "SvelteKit framework docs. Covers routing, load functions, adapters, and deployment."
+        },
+        {
+            "name": "bootstrap",
+            "type": "git",
+            "url": "https://github.com/twbs/bootstrap",
+            "branch": "main",
+            "searchPath": "site/content/docs",
+            "specialNotes": "Bootstrap 5 documentation. Components, utilities, and customization via Sass variables."
+        },
+        {
+            "name": "vite",
+            "type": "git",
+            "url": "https://github.com/vitejs/vite",
+            "branch": "main",
+            "searchPath": "docs",
+            "specialNotes": "Vite build tool documentation. Config, plugins, and build optimization."
+        },
+        {
+            "name": "typescript",
+            "type": "git",
+            "url": "https://github.com/microsoft/TypeScript-Website",
+            "branch": "v2",
+            "searchPath": "packages/documentation/copy/en",
+            "specialNotes": "TypeScript handbook and reference documentation."
+        },
+        {
+            "name": "typesense",
+            "type": "git",
+            "url": "https://github.com/typesense/typesense-website",
+            "branch": "master",
+            "searchPath": "docs-site/content",
+            "specialNotes": "Typesense search engine documentation. API reference and client usage."
+        },
+        {
+            "name": "mdsvex",
+            "type": "git",
+            "url": "https://github.com/pngwn/MDsveX",
+            "branch": "master",
+            "searchPath": ".",
+            "specialNotes": "MDsveX preprocessor for Svelte. Markdown processing and frontmatter handling."
+        },
+        {
+            "name": "sass",
+            "type": "git",
+            "url": "https://github.com/sass/sass-site",
+            "branch": "main",
+            "searchPath": "source",
+            "specialNotes": "Sass/SCSS documentation. Functions, mixins, and module system."
+        }
+    ],
+    "model": "claude-haiku-4-5",
+    "provider": "opencode",
+    "providerTimeoutMs": 300000
+}

@@ -4,6 +4,7 @@
     compactPythonVersions,
     getPackageType,
     toLocalizedTime,
+    formatNumber,
   } from "$lib/utils";
 
   let { data } = $props();
@@ -101,6 +102,58 @@
       {/if}
     </div>
   </div>
+  {#if data.hit.download_total != undefined || data.hit.download_last_month != undefined}
+  <div class="downloads">
+    <div class="sidebar-label">PyPI Downloads</div>
+    <div class="downloads_data">
+      {#if data.hit.download_total != undefined}
+        <div title="Total downloads">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+          </svg>
+          <span>Total: {formatNumber(data.hit.download_total)}</span>
+        </div>
+      {/if}
+      {#if data.hit.download_last_month != undefined}
+        <div title="Monthly downloads">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-month" viewBox="0 0 16 16">
+            <path d="M2.56 11.332 3.1 9.73h1.984l.54 1.602h.718L4.444 6h-.696L1.85 11.332h.71zm1.544-4.527L4.9 9.18H3.284l.8-2.375h.02zm5.746.422h-.676V9.77c0 .652-.414 1.023-1.004 1.023-.539 0-.98-.246-.98-1.012V7.227h-.676v2.746c0 .941.606 1.425 1.453 1.425.656 0 1.043-.28 1.188-.605h.027v.539h.668V7.227zm2.258 5.046c-.563 0-.91-.304-.985-.636h-.687c.094.683.625 1.199 1.668 1.199.93 0 1.746-.527 1.746-1.578V7.227h-.649v.578h-.019c-.191-.348-.637-.64-1.195-.64-.965 0-1.64.679-1.64 1.886v.34c0 1.23.683 1.902 1.64 1.902.558 0 1.008-.293 1.172-.648h.02v.605c0 .645-.423 1.023-1.071 1.023zm.008-4.53c.648 0 1.062.527 1.062 1.359v.253c0 .848-.39 1.364-1.062 1.364-.692 0-1.098-.512-1.098-1.364v-.253c0-.868.406-1.36 1.098-1.36z"/>
+            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+          </svg>
+          <span>Monthly: {formatNumber(data.hit.download_last_month)}</span>
+        </div>
+      {/if}
+      {#if data.hit.download_last_week != undefined}
+        <div title="Weekly downloads">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-week" viewBox="0 0 16 16">
+            <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm-5 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z"/>
+            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+          </svg>
+          <span>Weekly: {formatNumber(data.hit.download_last_week)}</span>
+        </div>
+      {/if}
+      {#if data.hit.download_last_day != undefined}
+        <div title="Daily downloads">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-day" viewBox="0 0 16 16">
+            <path d="M4.684 11.523v-2.3h2.261v-.61H4.684V6.801h2.464v-.61H4v5.332h.684zm3.296 0h.676V8.98c0-.554.227-1.007.953-1.007.125 0 .258.004.329.015v-.613a1.806 1.806 0 0 0-.254-.02c-.582 0-.891.32-1.012.567h-.02v-.504H7.98v4.105zm2.805-5.093c0 .238.192.425.43.425a.428.428 0 1 0 0-.855.426.426 0 0 0-.43.43zm.094 5.093h.672V7.418h-.672v4.105z"/>
+            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+          </svg>
+          <span>Daily: {formatNumber(data.hit.download_last_day)}</span>
+        </div>
+      {/if}
+      {#if data.hit.download_updated != undefined}
+        <div title="Stats last updated">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock" viewBox="0 0 16 16">
+            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0z"/>
+          </svg>
+          <span>Updated: {toLocalizedTime(data.hit.download_updated)}</span>
+        </div>
+      {/if}
+    </div>
+  </div>
+  {/if}
   <div class="versions">
       <div class="sidebar-label">Releases on <a href="{data.hit.project_url}" target="_blank" title="open project page on PyPi">PyPi</a></div>
       <ul class="releases">
@@ -270,6 +323,35 @@
         }
         span {
           padding: 0.4em;
+          align-self: center;
+        }
+      }
+    }
+  }
+  .downloads {
+    padding: var(--box-padding);
+    background-color: #e8f4e8;
+    color: var(--fbc-primary-text);
+    font-size: 0.9em;
+    margin-top: 1em;
+    svg {
+      width: auto;
+      height: 1.2em;
+    }
+    .downloads_data {
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: column;
+      padding: 0.5em 0;
+      > div {
+        display: flex;
+        padding: 0.3em 0.5em;
+        svg {
+          align-self: center;
+          padding-bottom: 0.2em;
+        }
+        span {
+          padding: 0 0.4em;
           align-self: center;
         }
       }

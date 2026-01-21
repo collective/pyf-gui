@@ -16,7 +16,7 @@ import type { VersionInfo } from '$lib/interfaces';
 export let searchClient = new Client({
   'nodes': [{
     'host': PUBLIC_SEARCH_HOST, // For Typesense Cloud use xxx.a1.typesense.net
-    'port': PUBLIC_SEARCH_PORT,      // For Typesense Cloud use 443
+    'port': parseInt(PUBLIC_SEARCH_PORT),      // For Typesense Cloud use 443
     'protocol': PUBLIC_SEARCH_PROTOCOL // For Typesense Cloud use https
   }],
   'apiKey': PUBLIC_SEARCH_API_KEY,
@@ -25,7 +25,7 @@ export let searchClient = new Client({
 
 
 
-export function doSearch(term?: string, filter?: { package_types: [], plone_versions: [] },) {
+export function doSearch(term?: string, filter?: { package_types: string[], plone_versions: string[] },) {
   // debugger
   console.log(`filter: ${JSON.stringify(filter)}`)
   let classifiers = ["Framework :: Plone"];
@@ -107,7 +107,7 @@ export function doSearch(term?: string, filter?: { package_types: [], plone_vers
     searchRequests.searches.push(facetSearch as any)
   }
   console.log("query:", searchRequests)
-  searchClient.multiSearch.perform(searchRequests as any, commonSearchParams).then((searchResults: { results: any[] }) => {
+  searchClient.multiSearch.perform(searchRequests as any, commonSearchParams).then((searchResults: any) => {
     console.log(searchResults)
     if (searchResults === undefined) { return }
     package_list.set(searchResults.results[0].grouped_hits)
@@ -117,7 +117,7 @@ export function doSearch(term?: string, filter?: { package_types: [], plone_vers
       facetResultsIndex++;
     }
 
-    searchResults.results[facetResultsIndex].facet_counts.forEach((facet) => {
+    searchResults.results[facetResultsIndex].facet_counts.forEach((facet: any) => {
       if (facet.field_name === 'framework_versions') {
         let versions: VersionInfo[] = [];
         facet.counts.forEach((version: VersionInfo) => {

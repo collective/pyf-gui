@@ -65,3 +65,8 @@ The app requires these `PUBLIC_*` env vars for Typesense configuration (set in `
 2. `doSearch()` in `search.ts` builds Typesense filter strings and executes multi-search
 3. Results update Svelte stores (`package_list`, `plone_versions`)
 4. `PackageList` reactively displays results grouped by package name
+
+
+# Rules
+
+- no claude code in commit messages
