@@ -59,10 +59,10 @@
           </svg>
           {/if}
         </button>
-        <div id="plone-versions-filter" class={showPloneVersionsFilter ? 'show' : ''}>
+        <div id="plone-versions-filter" class="filter-grid {showPloneVersionsFilter ? 'show' : ''}">
           {#each $plone_versions as version, i}
             {#if version.value.startsWith("Plone")}
-              <div class="form-check form-check-inline form-switch">
+              <div class="form-check form-switch">
                 <input
                   bind:group={pVersions}
                   class="form-check-input"
@@ -80,20 +80,22 @@
       </div>
       <div class="field package_types">
         <label for="package_type">Add-on types</label>
-        {#each package_types as ptype, i}
-          <div class="form-check form-check-inline form-switch">
-            <input
-              bind:group={pTypes}
-              class="form-check-input"
-              type="checkbox"
-              id="package_type_{i}"
-              value={ptype.value}
-            />
-            <label class="form-check-label" for="package_type_{i}">
-              {ptype.title}
-            </label>
-          </div>
-        {/each}
+        <div class="filter-grid">
+          {#each package_types as ptype, i}
+            <div class="form-check form-switch">
+              <input
+                bind:group={pTypes}
+                class="form-check-input"
+                type="checkbox"
+                id="package_type_{i}"
+                value={ptype.value}
+              />
+              <label class="form-check-label" for="package_type_{i}">
+                {ptype.title}
+              </label>
+            </div>
+          {/each}
+        </div>
       </div>
     </div>
   </form>
@@ -123,8 +125,36 @@
   #plone-versions-filter{
     display: none;
     &.show{
-      display: block;
+      display: grid;
     }
+  }
+
+  // Grid container for filter switches
+  .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6rem, 1fr));
+    gap: 0.5rem 1rem;
+    align-items: center;
+  }
+
+  // Override Bootstrap form-check for grid alignment
+  .filter-grid :global(.form-check) {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.4rem;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+  }
+
+  .filter-grid :global(.form-check-input) {
+    margin: 0;
+  }
+
+  .filter-grid :global(.form-check-label) {
+    margin: 0;
+    padding: 0;
+    font-weight: normal;
   }
   form {
     .search{
