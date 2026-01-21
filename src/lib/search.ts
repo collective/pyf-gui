@@ -7,6 +7,9 @@ import { PUBLIC_SEARCH_PROTOCOL } from '$env/static/public';
 import { PUBLIC_SEARCH_HOST } from '$env/static/public';
 import { PUBLIC_SEARCH_PORT } from '$env/static/public';
 import { PUBLIC_SEARCH_API_KEY } from '$env/static/public';
+import { PUBLIC_SEARCH_COLLECTION } from '$env/static/public';
+
+export const collectionName = PUBLIC_SEARCH_COLLECTION;
 import type { VersionInfo } from '$lib/interfaces';
 
 
@@ -83,7 +86,7 @@ export function doSearch(term?: string, filter?: { package_types: [], plone_vers
     'group_limit': 1,
     'per_page': 100,
     'q': term,
-    'collection': 'packages'
+    'collection': PUBLIC_SEARCH_COLLECTION
   }
   let searchRequests = {
     'searches': [

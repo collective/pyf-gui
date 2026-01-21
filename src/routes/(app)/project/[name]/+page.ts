@@ -1,4 +1,4 @@
-import { searchClient } from "$lib/search";
+import { searchClient, collectionName } from "$lib/search";
 import { python_versions } from '../../../../lib/stores';
 
 export async function load({ params }) {
@@ -9,7 +9,7 @@ export async function load({ params }) {
         'sort_by': 'version_sortable:desc'
     }
 
-    const searchResults = await searchClient.collections('packages').documents().search(searchParameters)
+    const searchResults = await searchClient.collections(collectionName).documents().search(searchParameters)
     if(!searchResults) { return }
     // const searchResults = await searchClient.collections('packages').documents(params.name).retrieve()
     const hits = await searchResults.hits;
