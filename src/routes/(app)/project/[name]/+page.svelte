@@ -1,16 +1,15 @@
 <script lang="ts">
   import {
-    getPloneVersions,
     compactPloneVersions,
     compactPythonVersions,
-    getPythonVersions,
     getPackageType,
     toLocalizedTime,
   } from "$lib/utils";
-  export let data = {};
-  // $: console.log(data);
+
+  let { data } = $props();
 </script>
 
+{#if data.hit}
 <aside class="package">
   <div class="github">
     <div class="github_icon">
@@ -147,18 +146,12 @@
   <h1>{data.hit.name}</h1>
   {@html data.hit.description}
 </article>
+{/if}
 
 <style lang="scss">
-  // .box-effect {
-  //   -webkit-box-shadow: 0 10px 6px -6px #777;
-  //   -moz-box-shadow: 0 10px 6px -6px #777;
-  //   box-shadow: 0 10px 6px -6px #777;
-  // }
-
   aside {
     --box-padding: 0.8em;
     grid-area: sidebar;
-    /* background-color: #0095d3; */
     padding: 2em 0 2em 0;
   }
   article {
@@ -195,7 +188,6 @@
   }
   .versions {
     grid-area: versions;
-    // background-color: #faeca2;
     color: var(--fbc-primary-text);
     padding: var(--box-padding) var(--box-padding) 0.2em 0.2em;
     p {
@@ -240,27 +232,6 @@
         }
       }
     }
-
-    // .plone_versions,
-    // .python_versions {
-    //   display: flex;
-    //   padding: 0.2em 0 0 0;
-    //   .icon {
-    //     text-align: center;
-    //     padding: 0 0.5em;
-    //   }
-    //   ul {
-    //     display: flex;
-    //     flex-wrap: wrap;
-    //     list-style-type: none;
-    //     margin: 0;
-    //     padding: 0 0.5em;
-    //     font-size: 1.1em;
-    //     li {
-    //       padding: 0.2em 0.5em;
-    //     }
-    //   }
-    // }
   }
   .github {
     grid-area: github;
@@ -311,43 +282,5 @@
   .type {
     grid-area: type;
     padding: 0.3em var(--box-padding) var(--box-padding) var(--box-padding);
-  }
-  .classifiers {
-    grid-area: classifiers;
-    padding: var(--box-padding);
-    cursor: pointer;
-    background-color: #d5e4f6;
-    color: rgb(0, 0, 0);
-    .label {
-      a {
-        font-size: 1rem;
-        text-decoration: overline;
-        color: rgb(0, 0, 0);
-        &::after {
-          content: "▼";
-          padding-left: 0.2em;
-          font-size: 0.9rem;
-        }
-      }
-    }
-  }
-
-  /*==================================================
- * Effect 1
- * ===============================================*/
-  .effect1 {
-    // -webkit-box-shadow: 0 10px 6px -6px #777;
-    // -moz-box-shadow: 0 10px 6px -6px #777;
-    box-shadow: 0 10px 6px -6px #777;
-    box-shadow: 10 -10px 6px -6px #777;
-  }
-
-  .effect2 {
-    background: #f5f5f5;
-    border: 1px solid #fff;
-    border-radius: 5px;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    box-shadow: 1px 2px 4px rgba(0, 0, 0, 0.4);
   }
 </style>

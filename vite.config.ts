@@ -1,16 +1,15 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import type { UserConfig } from 'vite';
-import { isoImport } from 'vite-plugin-iso-import';
+import { defineConfig } from 'vite';
 
-const config: UserConfig = {
-	plugins: [sveltekit(), isoImport()],
+export default defineConfig({
+	plugins: [sveltekit()],
 	css: {
 		preprocessorOptions: {
 			scss: {
-				additionalData: '@use "src/variables.scss" as *;'
+				additionalData: '@use "src/variables.scss" as *;',
+				api: 'modern-compiler',
+				loadPaths: ['./']
 			}
 		}
-	},
-};
-
-export default config;
+	}
+});

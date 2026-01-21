@@ -1,16 +1,12 @@
 <script lang="ts">
   import { getPloneVersions, getPythonVersions, getPackageType, toLocalizedTime } from '$lib/utils';
-  import { browser } from "$app/environment";
-  import collapse from "svelte-collapse";
 
-  export let item = {} as any;
-  let classifiersOpen = false;
+  let { item } = $props<{ item: any }>();
 
-  function toLocalizedDate(datetime){
+  function toLocalizedDate(datetime: string | null): string {
     if (!datetime) { return "" }
     return new Date(datetime).toLocaleDateString()
   }
-
 </script>
 
 <div class="package effect2">
@@ -136,34 +132,11 @@
     keywords: {item.keywords}
   </div>
   <div class="type">Type: {getPackageType(item.classifiers)}</div>
-  <div class="classifiers">
-    {#if browser}
-      <div class="label">
-        <a on:click={() => (classifiersOpen = !classifiersOpen)}>classifiers</a>
-      </div>
-      <div>
-        <ul
-          use:collapse={{
-            open: classifiersOpen,
-            duration: 0.2,
-            easing: "ease",
-          }}
-        >
-          {#each item.classifiers as classifier}
-            <li>{classifier}</li>
-          {/each}
-        </ul>
-      </div>
-    {/if}
-  </div>
 </div>
 
 <style lang="scss">
   .package {
     --box-padding: 0.8em;
-    // border: 1px solid #aaa;
-    // border-radius: 2px;
-    // box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.1);
     display: grid;
     width: 100%;
     margin: 0.6em auto;
@@ -174,8 +147,7 @@
       "versions"
       "github"
       "keywords"
-      "type"
-      "classifiers";
+      "type";
     .title{
       margin-bottom: 0.5em;
       h2{
@@ -195,15 +167,8 @@
       grid-template-areas:
         "info versions"
         "keywords github"
-        "type github"
-        "classifiers classifiers";
+        "type github";
     }
-  }
-
-  .box-effect {
-    -webkit-box-shadow: 0 10px 6px -6px #777;
-    -moz-box-shadow: 0 10px 6px -6px #777;
-    box-shadow: 0 10px 6px -6px #777;
   }
 
   .info {
@@ -226,9 +191,6 @@
     background-color: #faeca2;
     color: #333;
     padding: var(--box-padding) var(--box-padding) 0.2em 0.2em;
-    p {
-      margin: 0.2em 0;
-    }
     .plone_versions,
     .python_versions {
       display: flex;
@@ -305,36 +267,6 @@
     grid-area: type;
     padding: 0.3em var(--box-padding) var(--box-padding) var(--box-padding);
     color: var(--fbc-secondary-text);
-  }
-  .classifiers {
-    display: none;
-    grid-area: classifiers;
-    padding: var(--box-padding);
-    cursor: pointer;
-    background-color: #d5e4f6;
-    color: rgb(0, 0, 0);
-    .label {
-      a {
-        font-size: 1rem;
-        text-decoration: overline;
-        color: rgb(0, 0, 0);
-        &::after {
-          content: "▼";
-          padding-left: 0.2em;
-          font-size: 0.9rem;
-        }
-      }
-    }
-  }
-
-  /*==================================================
- * Effect 1
- * ===============================================*/
-  .effect1 {
-    // -webkit-box-shadow: 0 10px 6px -6px #777;
-    // -moz-box-shadow: 0 10px 6px -6px #777;
-    box-shadow: 0 10px 6px -6px #777;
-    box-shadow: 10 -10px 6px -6px #777;
   }
 
   .effect2 {

@@ -1,5 +1,6 @@
 <script>
   import "../app.scss";
+  let { children } = $props();
 </script>
 
 <header>
@@ -18,7 +19,7 @@
 </header>
 
 <main>
-  <slot />
+  {@render children()}
 </main>
 
 <footer>

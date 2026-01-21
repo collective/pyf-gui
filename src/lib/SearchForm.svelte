@@ -4,42 +4,34 @@
   import { default_plone_versions } from "./settings";
   import { default_package_types } from "./settings";
   import { plone_versions } from "$lib/stores";
-  import { getPackageType } from "$lib/utils";
   import type { Filter } from "$lib/interfaces";
 
-  let term = "";
-  let showPloneVersionsFilter = true;
-  // let pVersions: string[] = [];
-  let pVersions: string[] = default_plone_versions;
-  let pTypes: string[] = default_package_types;
-  // let package_types: string[] = [] ; //package_types[0].value;
+  let term = $state("");
+  let showPloneVersionsFilter = $state(true);
+  let pVersions = $state<string[]>([...default_plone_versions]);
+  let pTypes = $state<string[]>([...default_package_types]);
 
-  let filter: Filter = {
+  let filter = $derived<Filter>({
     plone_versions: pVersions,
     package_types: pTypes,
-  };
+  });
 
-  $: {
-    filter.plone_versions = pVersions;
-    filter.package_types = pTypes;
-    // console.log(`pversions: ${pVersions}`);
-    // console.log(`ptypes: ${pTypes}`);
+  $effect(() => {
+    doSearch(term, filter);
+  });
+
+  function handleSubmit(e: Event) {
+    e.preventDefault();
     doSearch(term, filter);
   }
 
-  function isDefaultVersion(value) {
-    if (default_plone_versions.indexOf(value) != -1) {
-      return true;
-    }
-    return false;
-  }
-  function handleSubmit() {
-    doSearch();
+  function togglePloneVersionsFilter() {
+    showPloneVersionsFilter = !showPloneVersionsFilter;
   }
 </script>
 
 <div class="search_form">
-  <form on:submit|preventDefault={handleSubmit}>
+  <form onsubmit={handleSubmit}>
     <div class="field search">
       <div class="label">Search</div>
       <input
@@ -52,13 +44,13 @@
     </div>
     <div class="filters">
       <div class="field plone_version">
-        <div class="label clickable"
-            on:click={() => showPloneVersionsFilter = !showPloneVersionsFilter}
-            on:keypress={() => showPloneVersionsFilter = !showPloneVersionsFilter}
-            role="button"
-            aria-expanded="true"
-            aria-controls="plone-versions-filter"
-            tabindex="0">
+        <button
+          type="button"
+          class="label clickable"
+          onclick={togglePloneVersionsFilter}
+          aria-expanded={showPloneVersionsFilter}
+          aria-controls="plone-versions-filter"
+        >
           Plone versions {#if !showPloneVersionsFilter}<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
             <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
           </svg>
@@ -66,7 +58,7 @@
             <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"/>
           </svg>
           {/if}
-        </div>
+        </button>
         <div id="plone-versions-filter" class={showPloneVersionsFilter ? 'show' : ''}>
           {#each $plone_versions as version, i}
             {#if version.value.startsWith("Plone")}
@@ -78,9 +70,9 @@
                   id="plone_version_{i}"
                   value={version.value}
                 />
-                <lable class="form-check-label" for="plone_version_{i}">
+                <label class="form-check-label" for="plone_version_{i}">
                   {version.value.replace("Plone ", "")} ({version.count})
-                </lable>
+                </label>
               </div>
             {/if}
           {/each}
@@ -97,9 +89,9 @@
               id="package_type_{i}"
               value={ptype.value}
             />
-            <lable class="form-check-label" for="package_type_{i}">
+            <label class="form-check-label" for="package_type_{i}">
               {ptype.title}
-            </lable>
+            </label>
           </div>
         {/each}
       </div>
@@ -119,6 +111,10 @@
   }
   .clickable{
     cursor: pointer;
+    background: none;
+    border: none;
+    text-align: left;
+    width: 100%;
   }
   .field {
     border-bottom: 2px solid #d3d3d3;
@@ -131,35 +127,6 @@
     }
   }
   form {
-    // display: flex;
-    // .field {
-    //   display: flex;
-    //   align-items: center;
-    //   padding: 0 0.5em;
-    //   label {
-    //     margin-right: 0.4em;
-    //     color: white;
-    //     font-family: Verdana, Geneva, Tahoma, sans-serif;
-    //   }
-    // input,
-    // select {
-    //   display: block;
-    //   padding: 0.375rem 2.25rem 0.375rem 0.75rem;
-    //   line-height: 1.5em !important;
-    //   margin: 0;
-    //   font-size: 1rem;
-    //   border: 1px solid #ced4da;
-    //   border-radius: 0.375rem;
-    //   appearance: none;
-    // }
-    // select {
-    //   background-color: #fff;
-    //   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-    //   background-repeat: no-repeat;
-    //   background-position: right 0.75rem center;
-    //   background-size: 16px 12px;
-    // }
-    // }
     .search{
       input{
         min-width: 100%;
