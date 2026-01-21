@@ -1,8 +1,9 @@
 <article>
   <h1>Help</h1>
 
-  All infos on this service are aggregated from PyPi, GitHub and co.
-  To make your Plone package look good, you can make sure that you defined the following PyPi classifieres.
+  All information for this service is aggregated from PyPI, GitHub, and other services.
+  To make your Plone add-on look good, you should define the following PyPI Trove classifiers in your add-on.
+  The following examples use `setup.py` syntax, and you can adapt them to `pyproject.yaml` syntax.
 
   For supported Plone versions:
 
@@ -17,20 +18,21 @@
 "Programming Language :: Python :: 3.8",
 "Programming Language :: Python :: 3.9",
 "Programming Language :: Python :: 3.10",
-"Programming Language :: Python :: 3.11",</pre>
+"Programming Language :: Python :: 3.11",
+"Programming Language :: Python :: 3.12",</pre>
 
-  set the right type of your package, choose one of this:
+  Set the right type of your add-on, choosing only one of the following Trove classifiers:
 
 <pre>"Framework :: Plone :: Addon",
 "Framework :: Plone :: Theme",
 "Framework :: Plone :: Distribution",
 "Framework :: Plone :: Core",</pre>
 
-  Please do not put "Distribution" or "Core" for normal add-on's, as it make filtering them later harder.
-  Only use "Core" for Plone core packages, which are comming with Plone be default.
+  "Addon" is for normal add-ons that are neither a theme, distribution, or part of Plone core.
+  Please do not put "Distribution" or "Core" for normal add-ons, as it makes filtering them difficult.
+  Use "Core" only for Plone core packages, which are those that come with Plone by default.
 
-
-  Also make sure that you have well defined urls to GitHub, docs, homepage aso:
+  Finally define your project URLs for GitHub, documentation, home page, or other project resources:
 
 <pre>
 project_urls="&#123;
