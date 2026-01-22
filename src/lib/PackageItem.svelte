@@ -17,26 +17,37 @@
     <p>{item.summary}</p>
   </div>
   <div class="versions">
-    <div class="plone_versions">
-      <div class="icon">
-        <img src="/images/plone-icon.svg" alt="Plone Logo" />
+    <div class="version-lists">
+      <div class="plone_versions">
+        <div class="icon">
+          <img src="/images/plone-icon.svg" alt="Plone Logo" />
+        </div>
+        <ul title={getPloneVersions(item.classifiers).join(', ')}>
+          {#each getPloneVersions(item.classifiers) as ploneVersion}
+            <li>{ploneVersion}</li>
+          {/each}
+        </ul>
       </div>
-      <ul>
-        {#each getPloneVersions(item.classifiers) as ploneVersion}
-          <li>{ploneVersion}</li>
-        {/each}
-      </ul>
-    </div>
-    <div class="python_versions">
-      <div class="icon">
-        <img src="/images/python-logo-only.svg" alt="Python Logo" />
+      <div class="python_versions">
+        <div class="icon">
+          <img src="/images/python-logo-only.svg" alt="Python Logo" />
+        </div>
+        <ul title={getPythonVersions(item.classifiers).join(', ')}>
+          {#each getPythonVersions(item.classifiers) as pythonVersion}
+            <li>{pythonVersion}</li>
+          {/each}
+        </ul>
       </div>
-      <ul>
-        {#each getPythonVersions(item.classifiers) as pythonVersion}
-          <li>{pythonVersion}</li>
-        {/each}
-      </ul>
     </div>
+    {#if item.download_last_month != undefined}
+      <div class="downloads-inline" title="Monthly downloads">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+          <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+          <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+        </svg>
+        <span>{formatNumber(item.download_last_month)}/mo</span>
+      </div>
+    {/if}
   </div>
   <div class="github">
     <div class="github_icon">
@@ -128,36 +139,6 @@
       {/if}
     </div>
   </div>
-  {#if item.download_total != undefined || item.download_last_month != undefined}
-  <div class="downloads">
-    <div class="downloads_icon">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
-        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-      </svg>
-    </div>
-    <div class="downloads_data">
-      {#if item.download_total != undefined}
-        <div title="Total downloads">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
-            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-          </svg>
-          <span>{formatNumber(item.download_total)}</span>
-        </div>
-      {/if}
-      {#if item.download_last_month != undefined}
-        <div title="Monthly downloads">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-month" viewBox="0 0 16 16">
-            <path d="M2.56 11.332 3.1 9.73h1.984l.54 1.602h.718L4.444 6h-.696L1.85 11.332h.71zm1.544-4.527L4.9 9.18H3.284l.8-2.375h.02zm5.746.422h-.676V9.77c0 .652-.414 1.023-1.004 1.023-.539 0-.98-.246-.98-1.012V7.227h-.676v2.746c0 .941.606 1.425 1.453 1.425.656 0 1.043-.28 1.188-.605h.027v.539h.668V7.227zm2.258 5.046c-.563 0-.91-.304-.985-.636h-.687c.094.683.625 1.199 1.668 1.199.93 0 1.746-.527 1.746-1.578V7.227h-.649v.578h-.019c-.191-.348-.637-.64-1.195-.64-.965 0-1.64.679-1.64 1.886v.34c0 1.23.683 1.902 1.64 1.902.558 0 1.008-.293 1.172-.648h.02v.605c0 .645-.423 1.023-1.071 1.023zm.008-4.53c.648 0 1.062.527 1.062 1.359v.253c0 .848-.39 1.364-1.062 1.364-.692 0-1.098-.512-1.098-1.364v-.253c0-.868.406-1.36 1.098-1.36z"/>
-            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
-          </svg>
-          <span>{formatNumber(item.download_last_month)}/mo</span>
-        </div>
-      {/if}
-    </div>
-  </div>
-  {/if}
   <div class="keywords">
     keywords: {item.keywords}
   </div>
@@ -176,7 +157,6 @@
       "info"
       "versions"
       "github"
-      "downloads"
       "keywords"
       "type";
     .title{
@@ -198,7 +178,7 @@
       grid-template-areas:
         "info versions"
         "keywords github"
-        "type downloads";
+        "type .";
     }
   }
 
@@ -222,6 +202,13 @@
     background-color: #faeca2;
     color: #333;
     padding: var(--box-padding) var(--box-padding) 0.2em 0.2em;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    .version-lists {
+      flex: 1;
+      min-width: 0;
+    }
     .plone_versions,
     .python_versions {
       display: flex;
@@ -229,6 +216,7 @@
       .icon {
         text-align: center;
         padding: 0 0.5em;
+        flex-shrink: 0;
       }
       img {
         width: 1.4em;
@@ -236,14 +224,33 @@
       }
       ul {
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+        overflow: hidden;
+        max-width: 180px;
+        mask-image: linear-gradient(to right, black 70%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%);
         list-style-type: none;
         margin: 0;
         padding: 0 0.5em;
         font-size: 1.1em;
+        cursor: default;
         li {
           padding: 0.2em 0.5em;
+          white-space: nowrap;
         }
+      }
+    }
+    .downloads-inline {
+      display: flex;
+      align-items: center;
+      gap: 0.3em;
+      padding: 0.5em;
+      font-size: 0.9em;
+      color: #555;
+      flex-shrink: 0;
+      svg {
+        width: 1em;
+        height: 1em;
       }
     }
   }
@@ -270,45 +277,6 @@
       }
     }
     .github_data {
-      flex-grow: 3;
-      display: flex;
-      flex-wrap: wrap;
-      flex-direction: row;
-      padding-left: 1em;
-      > div {
-        display: flex;
-        padding: 0 0.5em 0 0;
-        svg {
-          align-self: center;
-          padding-bottom: 0.2em;
-        }
-        span {
-          padding: 0.4em;
-          align-self: center;
-        }
-      }
-    }
-  }
-  .downloads {
-    grid-area: downloads;
-    padding: var(--box-padding);
-    background-color: #e8f4e8;
-    color: #333;
-    font-size: 0.9em;
-    display: flex;
-    svg {
-      width: auto;
-      height: 1.2em;
-    }
-    .downloads_icon {
-      flex-grow: 1;
-      flex-shrink: 1;
-      svg {
-        width: auto;
-        height: 2.4em;
-      }
-    }
-    .downloads_data {
       flex-grow: 3;
       display: flex;
       flex-wrap: wrap;
