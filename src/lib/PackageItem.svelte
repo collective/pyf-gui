@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getPloneVersions, getPythonVersions, getPackageType, toLocalizedTime, formatNumber } from '$lib/utils';
+  import { formatNumber, getPackageType, getPloneVersions, getPythonVersions, toLocalizedTime } from '$lib/utils';
 
   let { item } = $props<{ item: any }>();
 
@@ -10,14 +10,15 @@
 </script>
 
 <div class="package effect2">
-  <div class="info">
-
-    <div class="title"><h2><a href="/project/{item.name}">{item.name}</a></h2> <span class="title-metadata">{item.version} - {toLocalizedDate(item.upload_timestamp)}</span></div>
-
-    <p>{item.summary}</p>
+  <div class="left-column">
+    <div class="info">
+      <div class="title"><h2><a href="/project/{item.name}">{item.name}</a></h2> <span class="title-metadata">{item.version} - {toLocalizedDate(item.upload_timestamp)}</span></div>
+      <p>{item.summary}</p>
+    </div>
   </div>
-  <div class="versions">
-    <div class="version-lists">
+  <div class="right-column">
+    <div class="versions">
+    <div class="versions-left">
       <div class="plone_versions">
         <div class="icon">
           <img src="/images/plone-icon.svg" alt="Plone Logo" />
@@ -39,15 +40,17 @@
         </ul>
       </div>
     </div>
-    {#if item.download_last_month != undefined}
-      <div class="downloads-inline" title="Monthly downloads">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
-          <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-          <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-        </svg>
-        <span>{formatNumber(item.download_last_month)}/mo</span>
-      </div>
-    {/if}
+    <div class="versions-right">
+      {#if item.download_last_month != undefined}
+        <div class="downloads-inline" title="Monthly downloads">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+          </svg>
+          <span>{formatNumber(item.download_last_month)}/mo</span>
+        </div>
+      {/if}
+    </div>
   </div>
   <div class="github">
     <div class="github_icon">
@@ -139,10 +142,11 @@
       {/if}
     </div>
   </div>
-  <div class="keywords">
-    keywords: {item.keywords}
+  <div class="meta">
+    <span class="keywords" title="Keywords">{Array.isArray(item.keywords) ? item.keywords.join(', ') : item.keywords}</span>
+    <span class="type" title="Type">{getPackageType(item.classifiers)}</span>
   </div>
-  <div class="type">Type: {getPackageType(item.classifiers)}</div>
+  </div>
 </div>
 
 <style lang="scss">
@@ -154,11 +158,8 @@
     background-color: floralwhite;
     grid-template-columns: 1fr;
     grid-template-areas:
-      "info"
-      "versions"
-      "github"
-      "keywords"
-      "type";
+      "left"
+      "right";
     .title{
       margin-bottom: 0.5em;
       h2{
@@ -174,16 +175,23 @@
 
   @media (min-width: 800px) {
     .package {
-      grid-template-columns: 3fr 2fr;
+      grid-template-columns: 3.3fr 2fr;
       grid-template-areas:
-        "info versions"
-        "keywords github"
-        "type .";
+        "left right";
     }
   }
 
+  .left-column {
+    grid-area: left;
+  }
+
+  .right-column {
+    grid-area: right;
+    display: flex;
+    flex-direction: column;
+  }
+
   .info {
-    grid-area: info;
     padding: var(--box-padding);
     h2 {
       margin: 0 0 0.4em 0;
@@ -198,21 +206,32 @@
     }
   }
   .versions {
-    grid-area: versions;
-    background-color: #faeca2;
-    color: #333;
-    padding: var(--box-padding) var(--box-padding) 0.2em 0.2em;
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    .version-lists {
+
+    .versions-left {
       flex: 1;
-      min-width: 0;
+      background-color: #faeca2;
+      padding: calc(var(--box-padding) / 2);
+      display: flex;
+      flex-direction: column;
+      justify-content: start;
     }
+
+    .versions-right {
+      --downloads-padding: calc(var(--box-padding) / 2);
+      flex: 0 0 4.5em;
+      background-color: #d2e3ea;
+      padding: calc(var(--downloads-padding) / 0.5) var(--downloads-padding);
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      font-size: 0.9em;
+    }
+
     .plone_versions,
     .python_versions {
       display: flex;
-      padding: 0.2em 0 0 0;
+      padding: 0.2em 0;
       .icon {
         text-align: center;
         padding: 0 0.5em;
@@ -226,38 +245,37 @@
         display: flex;
         flex-wrap: nowrap;
         overflow: hidden;
-        max-width: 180px;
+        flex-grow: 1;
         mask-image: linear-gradient(to right, black 70%, transparent 100%);
         -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%);
         list-style-type: none;
         margin: 0;
-        padding: 0 0.5em;
-        font-size: 1.1em;
+        padding: 0;
+        font-size: 0.9em;
         cursor: default;
         li {
-          padding: 0.2em 0.5em;
+          padding: 0.2em 0.2em;
           white-space: nowrap;
         }
       }
     }
+
     .downloads-inline {
       display: flex;
+      flex-direction: column;
       align-items: center;
       gap: 0.3em;
-      padding: 0.5em;
+      color: #696767;
       font-size: 0.9em;
-      color: #555;
-      flex-shrink: 0;
       svg {
-        width: 1em;
-        height: 1em;
+        width: 1.1em;
+        height: 1.1em;
       }
     }
   }
   .github {
-    grid-area: github;
     padding: var(--box-padding);
-    background-color: #eee;
+    background-color: #ffbd91;
     color: #333;
     font-size: 0.9em;
     display: flex;
@@ -296,19 +314,25 @@
       }
     }
   }
-  .keywords {
-    grid-area: keywords;
-    padding: 0.3em var(--box-padding);
+  .meta {
+    display: flex;
+    font-size: 0.8em;
     color: var(--fbc-secondary-text);
-  }
-  .type {
-    grid-area: type;
-    padding: 0.3em var(--box-padding) var(--box-padding) var(--box-padding);
-    color: var(--fbc-secondary-text);
+
+    .keywords {
+      flex: 1;
+      padding: 0.3em var(--box-padding);
+    }
+
+    .type {
+      flex: 0 0 4.5em;
+      padding: 0.3em var(--box-padding);
+      text-align: center;
+    }
   }
 
   .effect2 {
-    background: #f5f5f5;
+    background: #fefefe;
     border: 1px solid #fff;
     border-radius: 5px;
     -moz-border-radius: 5px;
