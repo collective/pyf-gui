@@ -35,6 +35,15 @@ Improved package version display in the search results for better usability and 
 - Only shows monthly downloads (`download_last_month`) in compact format
 - Removed calendar icon (bi-calendar-month) and separate monthly display
 - Removed the large standalone downloads section
+- Total downloads moved into the versions section (top-right corner)
+- Compact inline display with download icon and formatted count
+- Removed standalone downloads grid area
+
+### 5. Removed Monthly Downloads
+
+- Removed `download_last_month` display
+- Removed calendar icon (bi-calendar-month)
+- Only total downloads are now shown
 
 ## Files Modified
 
