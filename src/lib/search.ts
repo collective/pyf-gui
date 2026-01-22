@@ -1,7 +1,5 @@
-import { package_list } from "./stores";
-import { results_count } from "./stores";
-import { plone_versions } from "./stores";
-// import { python_versions } from "./stores";
+import { package_list, results_count, plone_versions, current_page, is_loading, has_more, total_found } from "./stores";
+import { get } from "svelte/store";
 import { Client } from "typesense";
 import { PUBLIC_SEARCH_PROTOCOL } from '$env/static/public';
 import { PUBLIC_SEARCH_HOST } from '$env/static/public';
@@ -10,7 +8,9 @@ import { PUBLIC_SEARCH_API_KEY } from '$env/static/public';
 import { PUBLIC_SEARCH_COLLECTION } from '$env/static/public';
 
 export const collectionName = PUBLIC_SEARCH_COLLECTION;
-import type { VersionInfo } from '$lib/interfaces';
+import type { VersionInfo, Filter } from '$lib/interfaces';
+
+const PER_PAGE = 30;
 
 
 export let searchClient = new Client({
@@ -25,31 +25,28 @@ export let searchClient = new Client({
 
 
 
-export function doSearch(term?: string, filter?: { package_types: string[], plone_versions: string[] },) {
-  // debugger
-  console.log(`filter: ${JSON.stringify(filter)}`)
+export function doSearch(
+  term?: string,
+  filter?: Filter,
+  page: number = 1,
+  append: boolean = false
+) {
+  // Guard against concurrent requests
+  if (get(is_loading)) {
+    return;
+  }
+
+  console.log(`filter: ${JSON.stringify(filter)}, page: ${page}, append: ${append}`)
   let classifiers = ["Framework :: Plone"];
   if (filter && filter.package_types.length > 0) {
     classifiers = filter.package_types;
-    // filter.package_types.forEach((classifier) => {
-    //   classifiers.push(classifier)
-    // });
   }
   if (term == "" && (filter && (filter.package_types == undefined && filter.plone_versions == undefined))) { return }
   if (filter && (filter.package_types != undefined || filter.plone_versions != undefined)) {
     term = term || "*"
   }
-  // let pVersions = [];
-  // if (filter && filter.plone_versions) {
-  //   pVersions.push(filter.plone_versions);
-  // }
+
   let filterString = "";
-  // classifiers.forEach((classifier, key, arr) => {
-  //   filterString += `classifiers:=${classifier}`
-  //   if (!Object.is(arr.length - 1, key)) {
-  //     filterString += ' && '
-  //   }
-  // });
   let baseFilterString = filterString;
 
   // build plone_versions filter string:
@@ -80,11 +77,14 @@ export function doSearch(term?: string, filter?: { package_types: string[], plon
   });
   filterString += `classifiers:=[${ptFilterListString}]`;
 
+  is_loading.set(true);
+
   let commonSearchParams = {
     'exclude_fields': 'description',
     'group_by': 'name_sortable',
     'group_limit': 1,
-    'per_page': 100,
+    'per_page': PER_PAGE,
+    'page': page,
     'q': term,
     'collection': PUBLIC_SEARCH_COLLECTION
   }
@@ -109,9 +109,30 @@ export function doSearch(term?: string, filter?: { package_types: string[], plon
   console.log("query:", searchRequests)
   searchClient.multiSearch.perform(searchRequests as any, commonSearchParams).then((searchResults: any) => {
     console.log(searchResults)
-    if (searchResults === undefined) { return }
-    package_list.set(searchResults.results[0].grouped_hits)
-    results_count.set(searchResults.results[0].found)
+    if (searchResults === undefined) {
+      is_loading.set(false);
+      return;
+    }
+
+    const newHits = searchResults.results[0].grouped_hits || [];
+    const foundTotal = searchResults.results[0].found;
+
+    if (append) {
+      // Append new results to existing list
+      package_list.update(existing => [...existing, ...newHits]);
+    } else {
+      // Replace results
+      package_list.set(newHits);
+    }
+
+    results_count.set(foundTotal);
+    total_found.set(foundTotal);
+    current_page.set(page);
+
+    // Calculate if there are more results to load
+    const currentCount = append ? get(package_list).length : newHits.length;
+    has_more.set(currentCount < foundTotal);
+
     let facetResultsIndex: number = 0;
     if (searchResults.results.length === 2) {
       facetResultsIndex++;
@@ -124,8 +145,8 @@ export function doSearch(term?: string, filter?: { package_types: string[], plon
           versions.push(version)
         })
         plone_versions.set(versions.sort(function (a, b) {
-          var nameA = a.value.toUpperCase(); // ignore upper and lowercase
-          var nameB = b.value.toUpperCase(); // ignore upper and lowercase
+          var nameA = a.value.toUpperCase();
+          var nameB = b.value.toUpperCase();
           if (nameA > nameB) {
             return -1;
           }
@@ -137,5 +158,24 @@ export function doSearch(term?: string, filter?: { package_types: string[], plon
         console.log(versions)
       }
     });
-  })
+
+    is_loading.set(false);
+  }).catch((error: any) => {
+    console.error("Search error:", error);
+    is_loading.set(false);
+  });
+}
+
+// Helper function to load the next page
+export function loadMore(term?: string, filter?: Filter) {
+  const nextPage = get(current_page) + 1;
+  doSearch(term, filter, nextPage, true);
+}
+
+// Helper function to reset pagination state
+export function resetPagination() {
+  current_page.set(1);
+  has_more.set(true);
+  total_found.set(0);
+  package_list.set([]);
 }

@@ -1,13 +1,19 @@
 import { writable } from 'svelte/store';
-import type { VersionInfo, GroupedHit } from '$lib/interfaces';
+import type { VersionInfo, GroupedHit, Filter } from '$lib/interfaces';
 
 export const package_list = writable<GroupedHit[]>([]);
 
 let versions: VersionInfo[] = []
 
 export const results_count = writable({});
-export const search_filter = writable({});
-export const search_term = writable("*");
+export const search_filter = writable<Filter>({ plone_versions: [], package_types: [] });
+export const search_term = writable<string>("*");
 export const search_classifiers = writable([]);
 export const plone_versions = writable(versions);
 export const python_versions = writable([]);
+
+// Pagination state stores
+export const current_page = writable<number>(1);
+export const is_loading = writable<boolean>(false);
+export const has_more = writable<boolean>(true);
+export const total_found = writable<number>(0);

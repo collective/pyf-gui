@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { doSearch } from "./search";
+  import { doSearch, resetPagination } from "./search";
   import { package_types } from "./settings";
   import { default_plone_versions } from "./settings";
   import { default_package_types } from "./settings";
-  import { plone_versions } from "$lib/stores";
+  import { plone_versions, search_term, search_filter } from "$lib/stores";
   import type { Filter } from "$lib/interfaces";
 
   let term = $state("");
@@ -17,12 +17,18 @@
   });
 
   $effect(() => {
-    doSearch(term, filter);
+    // Update stores for other components to access
+    search_term.set(term);
+    search_filter.set(filter);
+    // Reset pagination and perform new search
+    resetPagination();
+    doSearch(term, filter, 1, false);
   });
 
   function handleSubmit(e: Event) {
     e.preventDefault();
-    doSearch(term, filter);
+    resetPagination();
+    doSearch(term, filter, 1, false);
   }
 
   function togglePloneVersionsFilter() {
