@@ -20,45 +20,49 @@
     <div class="versions">
     <div class="versions-left">
       <div class="plone_versions">
-        <div class="icon">
-          <img src="/images/plone-icon.svg" alt="Plone Logo" />
-        </div>
-        <ul title={getPloneVersions(item.classifiers).join(', ')}>
-          {#each getPloneVersions(item.classifiers) as ploneVersion}
-            <li>{ploneVersion}</li>
-          {/each}
-        </ul>
+        <a href="https://pypi.org/project/{item.name}/" target="_blank" rel="noopener noreferrer">
+          <div class="icon">
+            <img src="/images/plone-icon.svg" alt="Plone Logo" />
+          </div>
+          <ul title={getPloneVersions(item.classifiers).join(', ')}>
+            {#each getPloneVersions(item.classifiers) as ploneVersion}
+              <li>{ploneVersion}</li>
+            {/each}
+          </ul>
+        </a>
       </div>
       <div class="python_versions">
-        <div class="icon">
-          <img src="/images/python-logo-only.svg" alt="Python Logo" />
-        </div>
-        <ul title={getPythonVersions(item.classifiers).join(', ')}>
-          {#each getPythonVersions(item.classifiers) as pythonVersion}
-            <li>{pythonVersion}</li>
-          {/each}
-        </ul>
+        <a href="https://pypi.org/project/{item.name}/" target="_blank" rel="noopener noreferrer">
+          <div class="icon">
+            <img src="/images/python-logo-only.svg" alt="Python Logo" />
+          </div>
+          <ul title={getPythonVersions(item.classifiers).join(', ')}>
+            {#each getPythonVersions(item.classifiers) as pythonVersion}
+              <li>{pythonVersion}</li>
+            {/each}
+          </ul>
+        </a>
       </div>
     </div>
     <div class="versions-right">
       {#if item.download_last_month != undefined}
-        <div class="downloads-inline" title="Monthly downloads">
+        <a href="https://pypi.org/project/{item.name}/" target="_blank" rel="noopener noreferrer" class="downloads-inline" title="Monthly downloads">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
             <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
             <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
           </svg>
           <span>{formatNumber(item.download_last_month)}/mo</span>
-        </div>
+        </a>
       {/if}
     </div>
     {#if item.download_total != undefined}
-      <div class="downloads-inline" title="Total downloads">
+      <a href="https://pypi.org/project/{item.name}/" target="_blank" rel="noopener noreferrer" class="downloads-inline" title="Total downloads">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
           <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
           <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
         </svg>
         <span>{formatNumber(item.download_total)}</span>
-      </div>
+      </a>
     {/if}
   </div>
   <div class="github">
@@ -241,6 +245,15 @@
     .python_versions {
       display: flex;
       padding: 0.2em 0;
+      a {
+        display: contents;
+        color: inherit;
+        text-decoration: none;
+
+        &:hover {
+          opacity: 0.8;
+        }
+      }
       .icon {
         text-align: center;
         padding: 0 0.5em;
@@ -261,7 +274,7 @@
         margin: 0;
         padding: 0;
         font-size: 0.9em;
-        cursor: default;
+        cursor: pointer;
         li {
           padding: 0.2em 0.2em;
           white-space: nowrap;
@@ -276,9 +289,13 @@
       gap: 0.3em;
       color: #696767;
       font-size: 0.9em;
+      text-decoration: none;
       svg {
         width: 1.1em;
         height: 1.1em;
+      }
+      &:hover {
+        opacity: 0.8;
       }
     }
   }
