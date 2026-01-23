@@ -1,19 +1,39 @@
 # pyf-gui
 
-A SvelteKit UI for the Plone Catalog.
+A SvelteKit UI for the Plone Add-on Gallery (PAG).
 
-Needs pyf.aggregator and a Typesense instance to work.
+Requires [pyf.aggregator](https://github.com/collective/pyf.aggregator) and a Typesense instance to work.
 
+## Features
+
+- Search and browse Plone packages with faceted filtering
+- Filter by Plone version and package type (Addon, Theme, Distribution, Core)
+- Sort results by title or last modified date
+- Infinite scroll for seamless browsing
+- **Persistent user preferences** - filter and sort settings are saved to localStorage
+
+## User Preferences
+
+The app remembers your filter and sort selections across sessions:
+
+| Setting | localStorage Key | Default |
+|---------|------------------|---------|
+| Plone Versions | `pyf_plone_versions` | `["Plone 6.1", "Plone 6.0", "Plone 5.2"]` |
+| Package Types | `pyf_package_types` | `["Framework :: Plone :: Addon"]` |
+| Sort Order | `pyf_sort` | `"name_sortable:asc"` |
+
+To reset to defaults, clear the `pyf_*` keys from localStorage in your browser's DevTools.
 
 ## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+Install dependencies and start a development server:
 
 ```bash
-npm run dev
+pnpm install
+pnpm run dev
 
 # or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm run dev -- --open
 ```
 
 ## Building
@@ -21,9 +41,9 @@ npm run dev -- --open
 To create a production version of your app:
 
 ```bash
-npm run build
+pnpm run build
 ```
 
-You can preview the production build with `npm run preview`.
+You can preview the production build with `pnpm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
