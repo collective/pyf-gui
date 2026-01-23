@@ -70,16 +70,24 @@ The app requires these `PUBLIC_*` env vars for Typesense configuration (set in `
 4. `PackageList` reactively displays results grouped by package name
 
 
-## Documentation Lookup
+## btca
 
-Use `btca` to query up-to-date documentation for project dependencies:
+When you need up-to-date information about technologies used in this project, use btca to query source repositories directly.
+
+**Available resources**: svelte, svelteKit, bootstrap, vite, typescript, typesense, mdsvex, sass
+
+### Usage
 
 ```bash
 btca ask -r <resource> -q "<question>"
-
-# Available resources: svelte, svelteKit, bootstrap, vite, typescript, typesense, mdsvex, sass
-# Example: btca ask -r svelte -r svelteKit -q "How do I use runes with SvelteKit load functions?"
 ```
+
+Use multiple `-r` flags to query multiple resources at once:
+
+```bash
+btca ask -r svelte -r svelteKit -q "How do I use runes with SvelteKit load functions?"
+```
+
 
 ## Rules
 

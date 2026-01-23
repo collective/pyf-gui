@@ -3,9 +3,15 @@
 
   let { item } = $props<{ item: any }>();
 
-  function toLocalizedDate(datetime: string | null): string {
+  function toLocalizedDate(datetime: string | number | null): string {
     if (!datetime) { return "" }
-    return new Date(datetime).toLocaleDateString()
+    // Handle Unix timestamps (numbers in seconds)
+    const date = typeof datetime === 'number'
+      ? new Date(datetime * 1000)
+      : new Date(datetime);
+
+    const options: Intl.DateTimeFormatOptions = { year: "numeric", month: "2-digit", day: "2-digit" };
+    return date.toLocaleDateString(undefined, options);
   }
 </script>
 

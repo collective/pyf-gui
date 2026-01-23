@@ -22,7 +22,7 @@ export interface Package {
   description?: string;
   keywords?: string;
   classifiers?: string[];
-  upload_timestamp?: string;
+  upload_timestamp?: string | number;
   project_url?: string;
   python_versions?: string[];
   framework_versions?: string[];
