@@ -1,9 +1,27 @@
 <script lang="ts">
-  import { package_list, is_loading, has_more, total_found, search_term, search_filter } from "$lib/stores";
+  import { package_list, is_loading, has_more, total_found, search_term, search_filter, search_sort } from "$lib/stores";
   import { loadMore } from "$lib/search";
+  import { sort_options, default_sort } from "$lib/settings";
+  import { loadSortSetting, saveSortSetting } from "$lib/localStorage";
   import PackageItem from "$lib/PackageItem.svelte";
   import { onMount, onDestroy } from "svelte";
   import { get } from "svelte/store";
+
+  let currentSort = $state(default_sort);
+
+  // Load saved sort setting on mount (client-side only)
+  onMount(() => {
+    const savedSort = loadSortSetting();
+    currentSort = savedSort;
+    search_sort.set(savedSort);
+  });
+
+  function handleSortChange(event: Event) {
+    const target = event.target as HTMLSelectElement;
+    currentSort = target.value;
+    search_sort.set(currentSort);
+    saveSortSetting(currentSort);
+  }
 
   let sentinelElement: HTMLElement | null = $state(null);
   let observer: IntersectionObserver | null = null;
@@ -38,11 +56,18 @@
   });
 </script>
 
-<div class="results_count">
-  We found: {$total_found} Plone add-ons
-  {#if $package_list.length > 0 && $package_list.length < $total_found}
-    <span class="showing">(showing {$package_list.length} of {$total_found})</span>
-  {/if}
+<div class="results-header">
+  <div class="results_count">
+    We found: {$total_found} Plone add-ons
+    {#if $package_list.length > 0 && $package_list.length < $total_found}
+      <span class="showing">(showing {$package_list.length} of {$total_found})</span>
+    {/if}
+  </div>
+  <select class="form-select sort-select" onchange={handleSortChange} value={currentSort}>
+    {#each sort_options as option}
+      <option value={option.value}>{option.title}</option>
+    {/each}
+  </select>
 </div>
 <div class="package_list">
   {#each $package_list as item}
@@ -70,10 +95,22 @@
     flex-direction: column;
   }
 
-  .results_count {
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 1em 0;
+    gap: 1em;
+  }
+
+  .results_count {
     font-style: italic;
     font-size: 1.4em;
+  }
+
+  .sort-select {
+    width: auto;
+    max-width: 180px;
   }
 
   .showing {
@@ -82,9 +119,19 @@
   }
 
   @media (max-width: 640px) {
-    .results_count {
+    .results-header {
+      flex-direction: column;
+      align-items: flex-start;
       padding: 1em 0.5em;
+    }
+
+    .results_count {
       font-size: 1.2em;
+    }
+
+    .sort-select {
+      max-width: 100%;
+      width: 100%;
     }
   }
 

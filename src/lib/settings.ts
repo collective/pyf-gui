@@ -19,6 +19,14 @@ export const package_types = [
   { value: "Framework :: Plone :: Core", title: "Core"}
 ];
 
+export const sort_options = [
+  { value: 'name_sortable:asc', title: 'Title A-Z' },
+  { value: 'name_sortable:desc', title: 'Title Z-A' },
+  { value: 'upload_timestamp:desc', title: 'Last Modified' }
+];
+
+export const default_sort = 'name_sortable:asc';
+
 // if (process.env.isProd) {
 //   api_url = "https://addons.plone.org/api";
 // } else {

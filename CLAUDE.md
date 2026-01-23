@@ -30,7 +30,8 @@ pnpm run preview
 
 ### Stack
 - **SvelteKit** with TypeScript
-- **Typesense** for search (client-side queries)
+- **Svelte 5** with runes (`$state`, `$derived`, `$effect`) for reactive state
+- **Typesense** for search (client-side queries, no API routes)
 - **Bootstrap 5** with SCSS customization
 - **mdsvex** for Markdown support in routes
 
@@ -40,6 +41,7 @@ The app requires these `PUBLIC_*` env vars for Typesense configuration (set in `
 - `PUBLIC_SEARCH_HOST`
 - `PUBLIC_SEARCH_PORT`
 - `PUBLIC_SEARCH_API_KEY`
+- `PUBLIC_SEARCH_COLLECTION` - Typesense collection name
 
 ### Route Structure
 - `/` - Main search page with sidebar filters and package list
@@ -52,7 +54,8 @@ The app requires these `PUBLIC_*` env vars for Typesense configuration (set in `
 - `settings.ts` - Default filter values and package type classifiers
 - `interfaces.ts` - TypeScript interfaces (`Filter`, `VersionInfo`)
 - `SearchForm.svelte` - Filter UI component
-- `PackageList.svelte` / `PackageItem.svelte` - Results display components
+- `PackageList.svelte` - Results list with infinite scroll using Intersection Observer
+- `PackageItem.svelte` - Package card with metadata, badges, and GitHub stats
 
 ### Styling
 - Global styles in `src/app.scss`
@@ -67,6 +70,18 @@ The app requires these `PUBLIC_*` env vars for Typesense configuration (set in `
 4. `PackageList` reactively displays results grouped by package name
 
 
-# Rules
+## Documentation Lookup
+
+Use `btca` to query up-to-date documentation for project dependencies:
+
+```bash
+btca ask -r <resource> -q "<question>"
+
+# Available resources: svelte, svelteKit, bootstrap, vite, typescript, typesense, mdsvex, sass
+# Example: btca ask -r svelte -r svelteKit -q "How do I use runes with SvelteKit load functions?"
+```
+
+## Rules
 
 - no claude code in commit messages
+- write spec files to `specs/` folder when implementing new features or significant changes

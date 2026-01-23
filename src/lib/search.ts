@@ -1,4 +1,5 @@
-import { package_list, results_count, plone_versions, current_page, is_loading, has_more, total_found } from "./stores";
+import { package_list, results_count, plone_versions, current_page, is_loading, has_more, total_found, search_sort } from "./stores";
+import { default_sort } from "./settings";
 import { get } from "svelte/store";
 import { Client } from "typesense";
 import { PUBLIC_SEARCH_PROTOCOL } from '$env/static/public';
@@ -29,7 +30,8 @@ export function doSearch(
   term?: string,
   filter?: Filter,
   page: number = 1,
-  append: boolean = false
+  append: boolean = false,
+  sort: string = default_sort
 ) {
   // Guard against concurrent requests
   if (get(is_loading)) {
@@ -88,11 +90,16 @@ export function doSearch(
     'q': term,
     'collection': PUBLIC_SEARCH_COLLECTION
   }
+  // Build sort_by: prepend _text_match:desc when search term is active for relevance
+  const sortBy = term && term !== '*'
+    ? `_text_match:desc,${sort},version_sortable:desc`
+    : `${sort},version_sortable:desc`;
+
   let searchRequests = {
     'searches': [
       {
         'query_by': 'name,keywords,summary,description',
-        'sort_by': '_text_match:desc,name_sortable:asc,version_sortable:desc',
+        'sort_by': sortBy,
         'facet_by': 'framework_versions,python_versions',
         'filter_by': filterString
       }
@@ -167,9 +174,10 @@ export function doSearch(
 }
 
 // Helper function to load the next page
-export function loadMore(term?: string, filter?: Filter) {
+export function loadMore(term?: string, filter?: Filter, sort?: string) {
   const nextPage = get(current_page) + 1;
-  doSearch(term, filter, nextPage, true);
+  const currentSort = sort || get(search_sort);
+  doSearch(term, filter, nextPage, true, currentSort);
 }
 
 // Helper function to reset pagination state

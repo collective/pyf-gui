@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 import type { VersionInfo, GroupedHit, Filter } from '$lib/interfaces';
+import { default_sort } from '$lib/settings';
 
 export const package_list = writable<GroupedHit[]>([]);
 
@@ -17,3 +18,6 @@ export const current_page = writable<number>(1);
 export const is_loading = writable<boolean>(false);
 export const has_more = writable<boolean>(true);
 export const total_found = writable<number>(0);
+
+// Sort state store
+export const search_sort = writable<string>(default_sort);

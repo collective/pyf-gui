@@ -3,32 +3,53 @@
   import { package_types } from "./settings";
   import { default_plone_versions } from "./settings";
   import { default_package_types } from "./settings";
-  import { plone_versions, search_term, search_filter } from "$lib/stores";
+  import { plone_versions, search_term, search_filter, search_sort } from "$lib/stores";
+  import { loadFilterSettings, saveFilterSettings } from "$lib/localStorage";
+  import { onMount } from "svelte";
   import type { Filter } from "$lib/interfaces";
 
   let term = $state("");
   let showPloneVersionsFilter = $state(true);
   let pVersions = $state<string[]>([...default_plone_versions]);
   let pTypes = $state<string[]>([...default_package_types]);
+  let isInitialized = $state(false);
+
+  // Load saved filter settings on mount (client-side only)
+  onMount(() => {
+    const savedSettings = loadFilterSettings();
+    pVersions = savedSettings.ploneVersions;
+    pTypes = savedSettings.packageTypes;
+    isInitialized = true;
+  });
 
   let filter = $derived<Filter>({
     plone_versions: pVersions,
     package_types: pTypes,
   });
 
+  // Save filter settings when they change (after initialization)
+  $effect(() => {
+    if (isInitialized) {
+      saveFilterSettings(pVersions, pTypes);
+    }
+  });
+
+  // Track sort changes reactively using store subscription
   $effect(() => {
     // Update stores for other components to access
     search_term.set(term);
     search_filter.set(filter);
+    // Read sort value reactively ($ prefix makes it a dependency)
+    const sort = $search_sort;
     // Reset pagination and perform new search
     resetPagination();
-    doSearch(term, filter, 1, false);
+    doSearch(term, filter, 1, false, sort);
   });
 
   function handleSubmit(e: Event) {
     e.preventDefault();
     resetPagination();
-    doSearch(term, filter, 1, false);
+    doSearch(term, filter, 1, false, $search_sort);
   }
 
   function togglePloneVersionsFilter() {

@@ -1,0 +1,55 @@
+# Agent OS Standards Index
+
+css:
+  custom-properties:
+    description: Component-level CSS vars for layout flexibility
+
+frontend:
+  accessibility:
+    description: UI accessibility including semantic HTML, keyboard nav, ARIA, and focus management
+  components:
+    description: Component design patterns: reusability, composability, and clear interfaces
+  css:
+    description: CSS methodology, design tokens, and framework alignment
+  responsive:
+    description: Mobile-first responsive design with fluid layouts and breakpoints
+
+global:
+  coding-style:
+    description: Naming conventions, formatting, DRY principle, and small focused functions
+  commenting:
+    description: Self-documenting code with minimal, evergreen comments
+  conventions:
+    description: Project structure, version control, dependencies, and code review
+  error-handling:
+    description: Error messages, fail fast, graceful degradation, and resource cleanup
+  tech-stack:
+    description: Project technology stack overview
+  validation:
+    description: Server-side validation, sanitization, and business rule checks
+
+javascript:
+  utility-functions:
+    description: Shared formatting/parsing functions in utils.ts
+
+svelte:
+  runes:
+    description: Svelte 5 runes for reactive state and props
+  scoped-scss:
+    description: Scoped SCSS styles in components
+  stores:
+    description: Writable stores for shared application state
+
+testing:
+  test-writing:
+    description: Test coverage best practices and TDD approach
+
+typescript:
+  interface-comments:
+    description: Optional comment grouping for large interfaces
+  interfaces:
+    description: Domain interfaces co-located with usage
+  optional-properties:
+    description: Optional properties for API data and graceful degradation
+  settings-constants:
+    description: Static configuration in settings.ts
