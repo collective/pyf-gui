@@ -7,3 +7,4 @@
 - **Clear Test Names**: Use descriptive names that explain what's being tested and the expected outcome
 - **Mock External Dependencies**: Isolate units by mocking databases, APIs, file systems, and other external services
 - **Fast Execution**: Keep unit tests fast (milliseconds) so developers run them frequently during development
+- **E2E test**: Write end to end tests for the critical functionalities with playwright before implementing a feature!
