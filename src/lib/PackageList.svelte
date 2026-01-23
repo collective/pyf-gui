@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { package_list, is_loading, has_more, total_found, search_term, search_filter, search_sort } from "$lib/stores";
+  import { package_list, is_loading, has_more, total_found, search_term, search_filter, search_sort, sort_initialized } from "$lib/stores";
   import { loadMore } from "$lib/search";
   import { sort_options, default_sort } from "$lib/settings";
   import { loadSortSetting, saveSortSetting } from "$lib/localStorage";
@@ -14,6 +14,7 @@
     const savedSort = loadSortSetting();
     currentSort = savedSort;
     search_sort.set(savedSort);
+    sort_initialized.set(true); // Signal that sort is loaded
   });
 
   function handleSortChange(event: Event) {

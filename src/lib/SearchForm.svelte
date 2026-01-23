@@ -3,7 +3,7 @@
   import { package_types } from "./settings";
   import { default_plone_versions } from "./settings";
   import { default_package_types } from "./settings";
-  import { plone_versions, search_term, search_filter, search_sort } from "$lib/stores";
+  import { plone_versions, search_term, search_filter, search_sort, sort_initialized } from "$lib/stores";
   import { loadFilterSettings, saveFilterSettings } from "$lib/localStorage";
   import { onMount } from "svelte";
   import type { Filter } from "$lib/interfaces";
@@ -36,6 +36,11 @@
 
   // Track sort changes reactively using store subscription
   $effect(() => {
+    // Wait for sort to be initialized before searching
+    if (!$sort_initialized) {
+      return;
+    }
+
     // Update stores for other components to access
     search_term.set(term);
     search_filter.set(filter);

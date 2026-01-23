@@ -21,3 +21,6 @@ export const total_found = writable<number>(0);
 
 // Sort state store
 export const search_sort = writable<string>(default_sort);
+
+// Sort initialization state - tracks when sort preference is loaded from localStorage
+export const sort_initialized = writable<boolean>(false);
