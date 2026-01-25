@@ -1,24 +1,27 @@
-// export let api_url:string;
+// Package type configuration with primary flag for progressive disclosure
+export const package_types = [
+  { value: "Framework :: Plone :: Addon", title: "Addon", primary: true },
+  { value: "Framework :: Plone :: Distribution", title: "Distribution", primary: true },
+  { value: "Framework :: Plone :: Theme", title: "Theme", primary: false },
+  { value: "Framework :: Plone :: Core", title: "Core", primary: false }
+];
 
+// Plone version threshold for primary/secondary split
+export const PRIMARY_PLONE_VERSION_THRESHOLD = "5.2";
+
+// Default selected Plone versions
 export const default_plone_versions = [
   "Plone 6.1",
   "Plone 6.0",
   "Plone 5.2"
 ];
 
+// Default selected package types
 export const default_package_types = [
-  "Framework :: Plone :: Addon",
-  // "Framework :: Plone :: Theme",
-  // "Framework :: Plone :: Distribution"
+  "Framework :: Plone :: Addon"
 ];
 
-export const package_types = [
-  { value: "Framework :: Plone :: Addon", title: "Addon"},
-  { value: "Framework :: Plone :: Theme", title: "Theme"},
-  { value: "Framework :: Plone :: Distribution", title: "Distribution"},
-  { value: "Framework :: Plone :: Core", title: "Core"}
-];
-
+// Sort options for package list
 export const sort_options = [
   { value: 'name_sortable:asc', title: 'Title A-Z' },
   { value: 'name_sortable:desc', title: 'Title Z-A' },
@@ -26,9 +29,3 @@ export const sort_options = [
 ];
 
 export const default_sort = 'name_sortable:asc';
-
-// if (process.env.isProd) {
-//   api_url = "https://addons.plone.org/api";
-// } else {
-//   api_url = "http://localhost:8108";
-// }

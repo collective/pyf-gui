@@ -11,6 +11,9 @@ Requires [pyf.aggregator](https://github.com/collective/pyf.aggregator) and a Ty
 - Sort results by title or last modified date
 - Infinite scroll for seamless browsing
 - **Persistent user preferences** - filter and sort settings are saved to localStorage
+- **Mobile-first responsive design** - collapsible filter panel on mobile, always-visible sidebar on desktop
+- **Progressive disclosure** - primary filters shown by default, older versions and specialized types behind "more" toggles
+- **Modern CSS architecture** - CSS layers for clean cascade control, design tokens for consistent theming
 
 ## User Preferences
 

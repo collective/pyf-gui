@@ -1,97 +1,133 @@
-/* Write your global styles here, in SCSS syntax. Variables and mixins from the src/variables.scss file are available here without importing */ /* Import only what you need from Bootstrap */
+/* CSS Layers Architecture */
+@layer reset, bootstrap, theme, layout, components, utilities, customization, brand;
 
-@import "bootstrap/scss/root";
+/* Bootstrap Layer */
+@layer bootstrap {
+  @import "bootstrap/scss/root";
+  @import "bootstrap/scss/reboot";
+  @import "bootstrap/scss/type";
+  @import "bootstrap/scss/images";
+  @import "bootstrap/scss/containers";
+  @import "bootstrap/scss/grid";
+  @import "bootstrap/scss/tables";
+  @import "bootstrap/scss/forms";
+  @import "bootstrap/scss/buttons";
+  @import "bootstrap/scss/transitions";
+  @import "bootstrap/scss/dropdown";
+  @import "bootstrap/scss/button-group";
+  @import "bootstrap/scss/nav";
+  @import "bootstrap/scss/navbar";
+  @import "bootstrap/scss/card";
+  @import "bootstrap/scss/accordion";
+  @import "bootstrap/scss/breadcrumb";
+  @import "bootstrap/scss/pagination";
+  @import "bootstrap/scss/badge";
+  @import "bootstrap/scss/alert";
+  @import "bootstrap/scss/progress";
+  @import "bootstrap/scss/list-group";
+  @import "bootstrap/scss/close";
+  @import "bootstrap/scss/toasts";
+  @import "bootstrap/scss/modal";
+  @import "bootstrap/scss/tooltip";
+  @import "bootstrap/scss/popover";
+  @import "bootstrap/scss/carousel";
+  @import "bootstrap/scss/spinners";
+  @import "bootstrap/scss/offcanvas";
+  @import "bootstrap/scss/placeholders";
+  @import "bootstrap/scss/helpers";
+  @import "bootstrap/scss/utilities/api";
+}
 
-@import "bootstrap/scss/reboot";
+/* Theme Layer - Design Tokens */
+@layer theme {
+  :root {
+    /* Color Tokens */
+    --color-primary: #0095d3;
+    --color-secondary: #fffdda;
+    --color-background: #fff;
+    --color-text: #333;
+    --color-text-muted: #666;
+    --color-text-light: #777;
+    --color-border: #d3d3d3;
+    --color-accent: #ff6600;
 
-@import "bootstrap/scss/type";
+    /* Spacing Tokens (8px base) */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
 
-@import "bootstrap/scss/images";
+    /* Typography Tokens */
+    --font-family-base: Verdana, Geneva, Tahoma, sans-serif;
+    --font-size-base: 1rem;
+    --font-size-sm: 0.875rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-weight-normal: 400;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
 
-@import "bootstrap/scss/containers";
-
-@import "bootstrap/scss/grid";
-
-@import "bootstrap/scss/tables";
-
-@import "bootstrap/scss/forms";
-
-@import "bootstrap/scss/buttons";
-
-@import "bootstrap/scss/transitions";
-
-@import "bootstrap/scss/dropdown";
-
-@import "bootstrap/scss/button-group";
-
-@import "bootstrap/scss/nav";
-
-@import "bootstrap/scss/navbar";
-
-@import "bootstrap/scss/card";
-
-@import "bootstrap/scss/accordion";
-
-@import "bootstrap/scss/breadcrumb";
-
-@import "bootstrap/scss/pagination";
-
-@import "bootstrap/scss/badge";
-
-@import "bootstrap/scss/alert";
-
-@import "bootstrap/scss/progress";
-
-@import "bootstrap/scss/list-group";
-
-@import "bootstrap/scss/close";
-
-@import "bootstrap/scss/toasts";
-
-@import "bootstrap/scss/modal";
-
-@import "bootstrap/scss/tooltip";
-
-@import "bootstrap/scss/popover";
-
-@import "bootstrap/scss/carousel";
-
-@import "bootstrap/scss/spinners";
-
-@import "bootstrap/scss/offcanvas";
-
-@import "bootstrap/scss/placeholders";
-
-@import "bootstrap/scss/helpers";
-
-@import "bootstrap/scss/utilities/api";
-
-/* Write your global styles here, in SCSS syntax. Variables and mixins from the src/variables.scss file are available here without importing */
-
-body {
-  background-color: #fff;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
-  img{
-    max-width: 100%;
+    /* Layout Tokens */
+    --sidebar-width: clamp(24ch, 28ch, 30ch);
+    --content-width: clamp(60ch, 90ch, 110ch);
+    --border-radius-sm: 4px;
+    --border-radius-md: 8px;
   }
-  // sections in PyPi description HTML content
-  .section {
-    padding: 1em 0;
+}
+
+/* Layout Layer - Mobile-First */
+@layer layout {
+  body {
+    background-color: var(--color-background);
+    font-family: var(--font-family-base);
+
+    /* Mobile: single column flex layout */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+
     img {
-      padding: 0.5em 0;
+      max-width: 100%;
+    }
+
+    /* Sections in PyPi description HTML content */
+    .section {
+      padding: var(--spacing-md) 0;
+
+      img {
+        padding: var(--spacing-sm) 0;
+      }
+    }
+  }
+
+  /* Desktop: grid layout */
+  @media (min-width: 640px) {
+    body {
+      display: grid;
+      column-gap: var(--spacing-md);
+      grid-template-columns: 1fr var(--sidebar-width) var(--content-width) 1fr;
+      grid-template-rows: auto 1fr auto;
+      grid-template-areas:
+        "header header header header"
+        ". sidebar content ."
+        "footer footer footer footer";
     }
   }
 }
 
-@media (min-width: 640px) {
-  body {
-    display: grid;
-    column-gap: 1em;
-    grid-template-columns: 1fr clamp(24ch, 28ch, 30ch) clamp(60ch, 90ch, 110ch) 1fr;
-    grid-template-rows: auto;
-    grid-template-areas:
-      "header header header header"
-      ". sidebar content ."
-      "footer footer footer footer";
+/* Accessibility */
+@layer utilities {
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

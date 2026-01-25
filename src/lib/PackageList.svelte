@@ -58,19 +58,20 @@
 </script>
 
 <div class="results-header">
-  <div class="results_count">
+  <div class="results-header__count">
     We found: {$total_found} Plone add-ons
     {#if $package_list.length > 0 && $package_list.length < $total_found}
-      <span class="showing">(showing {$package_list.length} of {$total_found})</span>
+      <span class="results-header__showing">(showing {$package_list.length} of {$total_found})</span>
     {/if}
   </div>
-  <select class="form-select sort-select" onchange={handleSortChange} value={currentSort}>
+  <select class="form-select results-header__sort" onchange={handleSortChange} value={currentSort}>
     {#each sort_options as option}
       <option value={option.value}>{option.title}</option>
     {/each}
   </select>
 </div>
-<div class="package_list">
+
+<div class="package-list">
   {#each $package_list as item}
     {#if item.hits != undefined && item.hits.length >= 1}
       <PackageItem item={item.hits[0].document} />
@@ -78,86 +79,52 @@
   {/each}
 
   <!-- Sentinel element for infinite scroll -->
-  <div bind:this={sentinelElement} class="sentinel">
+  <div bind:this={sentinelElement} class="package-list__sentinel">
     {#if $is_loading}
-      <div class="loading">
-        <span class="spinner"></span>
+      <div class="package-list__loading">
+        <span class="package-list__spinner"></span>
         Loading more packages...
       </div>
     {:else if !$has_more && $package_list.length > 0}
-      <div class="all-loaded">All {$total_found} packages loaded</div>
+      <div class="package-list__all-loaded">All {$total_found} packages loaded</div>
     {/if}
   </div>
 </div>
 
 <style lang="scss">
-  .package_list {
+  .package-list {
     display: flex;
     flex-direction: column;
-  }
 
-  .results-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1em 0;
-    gap: 1em;
-  }
-
-  .results_count {
-    font-style: italic;
-    font-size: 1.4em;
-  }
-
-  .sort-select {
-    width: auto;
-    max-width: 180px;
-  }
-
-  .showing {
-    font-size: 0.8em;
-    color: #666;
-  }
-
-  @media (max-width: 640px) {
-    .results-header {
-      flex-direction: column;
-      align-items: flex-start;
-      padding: 1em 0.5em;
+    &__sentinel {
+      min-height: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: var(--spacing-md, 1rem);
     }
 
-    .results_count {
-      font-size: 1.2em;
+    &__loading {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm, 0.5rem);
+      color: var(--color-text-muted, #666);
     }
 
-    .sort-select {
-      max-width: 100%;
-      width: 100%;
+    &__spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--color-border, #ddd);
+      border-top-color: var(--color-primary, #0095d3);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
     }
-  }
 
-  .sentinel {
-    min-height: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 1em;
-  }
-
-  .loading {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-    color: #666;
-  }
-
-  .spinner {
-    width: 20px;
-    height: 20px;
-    border: 2px solid #ddd;
-    border-top-color: #0095d3;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    &__all-loaded {
+      color: var(--color-text-muted, #666);
+      font-style: italic;
+      padding: var(--spacing-md, 1rem);
+    }
   }
 
   @keyframes spin {
@@ -166,9 +133,46 @@
     }
   }
 
-  .all-loaded {
-    color: #666;
-    font-style: italic;
-    padding: 1em;
+  /* Mobile-first: stacked layout */
+  .results-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--spacing-md, 1rem) var(--spacing-sm, 0.5rem);
+    gap: var(--spacing-md, 1rem);
+
+    &__count {
+      font-style: italic;
+      font-size: var(--font-size-lg, 1.2em);
+    }
+
+    &__showing {
+      font-size: var(--font-size-sm, 0.8em);
+      color: var(--color-text-muted, #666);
+    }
+
+    &__sort {
+      width: 100%;
+      max-width: 100%;
+    }
+  }
+
+  /* Desktop: row layout */
+  @media (min-width: 640px) {
+    .results-header {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-md, 1rem) 0;
+
+      &__count {
+        font-size: var(--font-size-xl, 1.4em);
+      }
+
+      &__sort {
+        width: auto;
+        max-width: 180px;
+      }
+    }
   }
 </style>
