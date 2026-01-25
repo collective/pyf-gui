@@ -1,16 +1,14 @@
 # Agent OS Standards Index
 
-css:
-  custom-properties:
-    description: Component-level CSS vars for layout flexibility
-
 frontend:
   accessibility:
     description: UI accessibility including semantic HTML, keyboard nav, ARIA, and focus management
   components:
     description: Component design patterns: reusability, composability, and clear interfaces
   css:
-    description: CSS methodology, design tokens, and framework alignment
+    description: CSS methodology, design tokens, CSS layers, and whitelabeling
+  custom-properties:
+    description: Component-level CSS vars for layout flexibility
   responsive:
     description: Mobile-first responsive design with fluid layouts and breakpoints
 

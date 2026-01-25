@@ -9,7 +9,7 @@
 ## Frontend
 
 - **JavaScript Framework:** Svelte, vanilla JS
-- **CSS Framework:** Bootstrap 5 with SCSS customization
+- **CSS Framework:** pico css, pure custom CSS/SCSS
 
 ## Search Backend
 
