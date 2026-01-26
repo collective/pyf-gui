@@ -138,16 +138,17 @@
           {/if}
         </button>
         <div id="plone-versions-filter" class="search-form__filter-grid {showPloneVersionsFilter ? 'search-form__filter-grid--visible' : ''}">
-          {#each primaryVersions as version, i}
+          {#each primaryVersions as version (version.value)}
             <div class="form-check form-switch">
               <input
                 bind:group={pVersions}
+                checked={pVersions.includes(version.value)}
                 class="form-check-input"
                 type="checkbox"
-                id="plone_version_primary_{i}"
+                id="plone_version_{version.value}"
                 value={version.value}
               />
-              <label class="form-check-label" for="plone_version_primary_{i}">
+              <label class="form-check-label" for="plone_version_{version.value}">
                 {version.value.replace("Plone ", "")} ({version.count})
               </label>
             </div>
@@ -169,16 +170,17 @@
             </button>
 
             {#if showOlderVersions}
-              {#each olderVersions as version, i}
+              {#each olderVersions as version (version.value)}
                 <div class="form-check form-switch">
                   <input
                     bind:group={pVersions}
+                    checked={pVersions.includes(version.value)}
                     class="form-check-input"
                     type="checkbox"
-                    id="plone_version_older_{i}"
+                    id="plone_version_{version.value}"
                     value={version.value}
                   />
-                  <label class="form-check-label" for="plone_version_older_{i}">
+                  <label class="form-check-label" for="plone_version_{version.value}">
                     {version.value.replace("Plone ", "")} ({version.count})
                   </label>
                 </div>
@@ -190,16 +192,17 @@
       <div class="search-form__field search-form__field--types">
         <label class="search-form__label" for="package_type">Add-on types</label>
         <div class="search-form__filter-grid search-form__filter-grid--visible">
-          {#each primaryTypes as ptype, i}
+          {#each primaryTypes as ptype (ptype.value)}
             <div class="form-check form-switch">
               <input
                 bind:group={pTypes}
+                checked={pTypes.includes(ptype.value)}
                 class="form-check-input"
                 type="checkbox"
-                id="package_type_primary_{i}"
+                id="package_type_{ptype.value}"
                 value={ptype.value}
               />
-              <label class="form-check-label" for="package_type_primary_{i}">
+              <label class="form-check-label" for="package_type_{ptype.value}">
                 {ptype.title}
               </label>
             </div>
@@ -221,16 +224,17 @@
             </button>
 
             {#if showMoreTypes}
-              {#each secondaryTypes as ptype, i}
+              {#each secondaryTypes as ptype (ptype.value)}
                 <div class="form-check form-switch">
                   <input
                     bind:group={pTypes}
+                    checked={pTypes.includes(ptype.value)}
                     class="form-check-input"
                     type="checkbox"
-                    id="package_type_secondary_{i}"
+                    id="package_type_{ptype.value}"
                     value={ptype.value}
                   />
-                  <label class="form-check-label" for="package_type_secondary_{i}">
+                  <label class="form-check-label" for="package_type_{ptype.value}">
                     {ptype.title}
                   </label>
                 </div>

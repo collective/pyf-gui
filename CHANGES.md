@@ -2,6 +2,7 @@
 
 ## 1.0a1 (unreleased)
 
+- Fix default filter checkboxes not being checked on page load (Svelte 5 bind:group reactivity issue)
 - Add mobile-first responsive layout with collapsible filter panel
 - Add progressive disclosure for filters (older Plone versions and specialized package types behind "more" toggles)
 - Modernize CSS architecture with CSS layers (@layer) and design tokens (CSS custom properties)

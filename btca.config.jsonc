@@ -66,7 +66,7 @@
             "specialNotes": "Sass/SCSS documentation. Functions, mixins, and module system."
         }
     ],
-    "model": "claude-haiku-4-5",
+    "model": "gpt-5-nano",
     "provider": "opencode",
     "providerTimeoutMs": 300000
 }
