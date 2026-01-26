@@ -228,24 +228,10 @@
     }
   }
 
-  .info {
-    grid-area: info;
-    padding: var(--box-padding);
-    h2 {
-      margin: 0 0 0.4em 0;
-      font-size: 1.1rem;
-    }
-    p {
-      margin: 0.2em 0;
-    }
-  }
   .versions {
     grid-area: versions;
     color: var(--fbc-primary-text);
     padding: var(--box-padding) var(--box-padding) 0.2em 0.2em;
-    p {
-      margin: 0.2em 0;
-    }
     ul {
       list-style-type: none;
       margin: 0;

@@ -14,7 +14,7 @@
 		"@sveltejs/adapter-node": "^5.2.12",
 		"@sveltejs/kit": "^2.49.0",
 		"@sveltejs/vite-plugin-svelte": "^5.0.3",
-		"bootstrap": "^5.3.3",
+		"bootstrap": "^5.3.8",
 		"mdsvex": "^0.12.6",
 		"sass": "^1.86.0",
 		"svelte": "^5.17.3",

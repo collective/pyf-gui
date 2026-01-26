@@ -8,7 +8,8 @@ export default defineConfig({
 			scss: {
 				additionalData: '@use "src/variables.scss" as *;',
 				api: 'modern-compiler',
-				loadPaths: ['./']
+				loadPaths: ['./'],
+				silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'if-function']
 			}
 		}
 	}

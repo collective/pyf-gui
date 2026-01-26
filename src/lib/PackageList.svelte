@@ -64,11 +64,14 @@
       <span class="results-header__showing">(showing {$package_list.length} of {$total_found})</span>
     {/if}
   </div>
-  <select class="form-select results-header__sort" onchange={handleSortChange} value={currentSort}>
-    {#each sort_options as option}
-      <option value={option.value}>{option.title}</option>
-    {/each}
-  </select>
+  <div class="results-header__sort-wrapper">
+    <label class="results-header__sort-label" for="sort-select">Sort by</label>
+    <select id="sort-select" class="form-select results-header__sort" onchange={handleSortChange} value={currentSort}>
+      {#each sort_options as option}
+        <option value={option.value}>{option.title}</option>
+      {/each}
+    </select>
+  </div>
 </div>
 
 <div class="package-list">
@@ -151,6 +154,19 @@
       color: var(--color-text-muted, #666);
     }
 
+    &__sort-wrapper {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm, 0.5rem);
+      width: 100%;
+    }
+
+    &__sort-label {
+      font-size: var(--font-size-sm, 0.9em);
+      color: var(--color-text-muted, #666);
+      white-space: nowrap;
+    }
+
     &__sort {
       width: 100%;
       max-width: 100%;
@@ -167,6 +183,10 @@
 
       &__count {
         font-size: var(--font-size-xl, 1.4em);
+      }
+
+      &__sort-wrapper {
+        width: auto;
       }
 
       &__sort {
