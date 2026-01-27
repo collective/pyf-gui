@@ -1,7 +1,7 @@
 /**
  * Compare two version strings for sorting (descending - newer first)
  */
-function compareVersions(a: string, b: string): number {
+export function compareVersions(a: string, b: string): number {
     const partsA = a.split('.').map(n => parseInt(n, 10) || 0);
     const partsB = b.split('.').map(n => parseInt(n, 10) || 0);
     for (let i = 0; i < Math.max(partsA.length, partsB.length); i++) {

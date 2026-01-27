@@ -92,8 +92,8 @@ export function doSearch(
   }
   // Build sort_by: prepend _text_match:desc when search term is active for relevance
   const sortBy = term && term !== '*'
-    ? `_text_match:desc,${sort},version_sortable:desc`
-    : `${sort},version_sortable:desc`;
+    ? `_text_match:desc,${sort},upload_timestamp:desc`
+    : `${sort},upload_timestamp:desc`;
 
   let searchRequests = {
     'searches': [

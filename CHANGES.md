@@ -2,6 +2,7 @@
 
 ## 1.0a1 (unreleased)
 
+- Fix version sorting to always show the latest package version (use upload_timestamp instead of lexicographic version_sortable)
 - Add "Sort by" label to the sorting dropdown for better UX and accessibility
 - Fix default filter checkboxes not being checked on page load (Svelte 5 bind:group reactivity issue)
 - Add mobile-first responsive layout with collapsible filter panel
