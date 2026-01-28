@@ -1,18 +1,38 @@
 <script lang="ts">
   import { doSearch, resetPagination } from "./search";
-  import { package_types, PRIMARY_PLONE_VERSION_THRESHOLD } from "./settings";
+  import { package_types, PRIMARY_PLONE_VERSION_THRESHOLD, default_sort } from "./settings";
   import { default_plone_versions } from "./settings";
   import { default_package_types } from "./settings";
   import { plone_versions, search_term, search_filter, search_sort, sort_initialized } from "$lib/stores";
-  import { loadFilterSettings, saveFilterSettings } from "$lib/localStorage";
+  import { loadFilterSettings, saveFilterSettings, loadSortSetting } from "$lib/localStorage";
+  import { serializeToUrl, buildUrlString, type UrlSearchState } from "$lib/urlParams";
+  import { goto } from "$app/navigation";
+  import { page } from "$app/stores";
   import { onMount } from "svelte";
+  import { browser } from "$app/environment";
   import type { Filter } from "$lib/interfaces";
+
+  // Props from load function
+  interface Props {
+    urlParams: UrlSearchState;
+    urlHasParams: boolean;
+  }
+  let { urlParams, urlHasParams }: Props = $props();
 
   let term = $state("");
   let showPloneVersionsFilter = $state(true);
   let pVersions = $state<string[]>([...default_plone_versions]);
   let pTypes = $state<string[]>([...default_package_types]);
   let isInitialized = $state(false);
+
+  // Flag to prevent circular URL updates
+  let isUrlUpdate = $state(false);
+
+  // Debounce timer for search term
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // Track the previous URL to detect actual browser navigation
+  let previousUrl = $state<string | null>(null);
 
   // Progressive disclosure states
   let showOlderVersions = $state(false);
@@ -48,13 +68,122 @@
     })
   );
 
-  // Load saved filter settings on mount (client-side only)
+  // Initialize state: URL params > localStorage > defaults
   onMount(() => {
-    const savedSettings = loadFilterSettings();
-    pVersions = savedSettings.ploneVersions;
-    pTypes = savedSettings.packageTypes;
+    if (urlHasParams) {
+      // URL params take priority
+      term = urlParams.searchTerm === '*' ? '' : urlParams.searchTerm;
+      pVersions = urlParams.ploneVersions;
+      pTypes = urlParams.packageTypes;
+      // Set sort from URL if present
+      if (urlParams.sort !== default_sort) {
+        search_sort.set(urlParams.sort);
+      } else {
+        const savedSort = loadSortSetting();
+        search_sort.set(savedSort);
+      }
+    } else {
+      // Fall back to localStorage
+      const savedSettings = loadFilterSettings();
+      pVersions = savedSettings.ploneVersions;
+      pTypes = savedSettings.packageTypes;
+      const savedSort = loadSortSetting();
+      search_sort.set(savedSort);
+    }
+    sort_initialized.set(true);
     isInitialized = true;
   });
+
+  // Handle browser back/forward navigation
+  // Only reacts when the actual URL changes (not when local state changes)
+  $effect(() => {
+    if (!browser || !isInitialized) return;
+    // Don't run during programmatic URL updates
+    if (isUrlUpdate) return;
+
+    const currentUrl = $page.url;
+    const currentUrlString = currentUrl.toString();
+
+    // Skip if this is the first run or URL hasn't changed
+    if (previousUrl === null) {
+      previousUrl = currentUrlString;
+      return;
+    }
+
+    // Only process if URL actually changed (browser navigation)
+    if (previousUrl === currentUrlString) return;
+
+    // URL has changed - update previousUrl and sync state from URL
+    previousUrl = currentUrlString;
+    isUrlUpdate = true;
+
+    const urlQ = currentUrl.searchParams.get('q');
+    const urlVersion = currentUrl.searchParams.get('version');
+    const urlType = currentUrl.searchParams.get('type');
+    const urlSort = currentUrl.searchParams.get('sort');
+
+    // Update local state from URL
+    term = urlQ || '';
+
+    if (urlVersion !== null) {
+      pVersions = urlVersion.split(',').map(v => `Plone ${v.trim()}`);
+    } else {
+      pVersions = [...default_plone_versions];
+    }
+
+    if (urlType !== null) {
+      const CODE_TO_TYPE: Record<string, string> = {
+        'addon': 'Framework :: Plone :: Addon',
+        'theme': 'Framework :: Plone :: Theme',
+        'core': 'Framework :: Plone :: Core',
+        'distribution': 'Framework :: Plone :: Distribution'
+      };
+      pTypes = urlType.split(',').map(code => CODE_TO_TYPE[code.trim()]).filter(Boolean);
+    } else {
+      pTypes = [...default_package_types];
+    }
+
+    if (urlSort !== null) {
+      search_sort.set(urlSort);
+    } else {
+      search_sort.set(default_sort);
+    }
+
+    // Reset flag after a tick
+    setTimeout(() => { isUrlUpdate = false; }, 0);
+  });
+
+  // Update URL when state changes
+  function updateUrl() {
+    if (!browser || !isInitialized || isUrlUpdate) return;
+
+    const state: UrlSearchState = {
+      searchTerm: term || '*',
+      ploneVersions: pVersions,
+      packageTypes: pTypes,
+      sort: $search_sort
+    };
+
+    const params = serializeToUrl(state);
+    const urlString = buildUrlString(params);
+    const targetUrl = urlString || '/';
+
+    // Don't navigate if URL hasn't changed
+    // Normalize paths for comparison (targetUrl may be just query string like ?q=foo)
+    const currentPath = window.location.pathname + window.location.search;
+    const normalizedTarget = targetUrl.startsWith('?') ? '/' + targetUrl : targetUrl;
+    if (normalizedTarget === currentPath) return;
+
+    // Set flag to prevent navigation effect from running during our URL update
+    isUrlUpdate = true;
+
+    goto(targetUrl, { keepFocus: true, noScroll: true }).then(() => {
+      // Update previousUrl after navigation completes
+      previousUrl = window.location.href;
+      // Clear the flag after a tick
+      setTimeout(() => { isUrlUpdate = false; }, 0);
+    });
+  }
 
   let filter = $derived<Filter>({
     plone_versions: pVersions,
@@ -66,6 +195,40 @@
     if (isInitialized) {
       saveFilterSettings(pVersions, pTypes);
     }
+  });
+
+  // Track filter changes and update URL (immediate)
+  $effect(() => {
+    if (isInitialized && !isUrlUpdate) {
+      // Track filter dependencies
+      const _versions = pVersions;
+      const _types = pTypes;
+      const _sort = $search_sort;
+      updateUrl();
+    }
+  });
+
+  // Track search term changes with debounce
+  $effect(() => {
+    if (!isInitialized) return;
+
+    const _term = term; // Track dependency
+
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    debounceTimer = setTimeout(() => {
+      if (!isUrlUpdate) {
+        updateUrl();
+      }
+    }, 300);
+
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
   });
 
   // Track sort changes reactively using store subscription

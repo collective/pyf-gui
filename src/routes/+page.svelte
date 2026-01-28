@@ -1,6 +1,9 @@
 <script lang="ts">
   import PackageList from "$lib/PackageList.svelte";
   import SearchForm from "$lib/SearchForm.svelte";
+  import type { PageData } from './$types';
+
+  let { data }: { data: PageData } = $props();
 
   let filtersExpanded = $state(false);
 
@@ -29,7 +32,7 @@
 </button>
 
 <aside id="filters-panel" class:expanded={filtersExpanded}>
-  <SearchForm />
+  <SearchForm urlParams={data.urlParams} urlHasParams={data.urlHasParams} />
 </aside>
 
 <article>

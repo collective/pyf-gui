@@ -1,27 +1,19 @@
 <script lang="ts">
-  import { package_list, is_loading, has_more, total_found, search_term, search_filter, search_sort, sort_initialized } from "$lib/stores";
+  import { package_list, is_loading, has_more, total_found, search_term, search_filter, search_sort } from "$lib/stores";
   import { loadMore } from "$lib/search";
   import { sort_options, default_sort } from "$lib/settings";
-  import { loadSortSetting, saveSortSetting } from "$lib/localStorage";
+  import { saveSortSetting } from "$lib/localStorage";
   import PackageItem from "$lib/PackageItem.svelte";
   import { onMount, onDestroy } from "svelte";
   import { get } from "svelte/store";
 
-  let currentSort = $state(default_sort);
-
-  // Load saved sort setting on mount (client-side only)
-  onMount(() => {
-    const savedSort = loadSortSetting();
-    currentSort = savedSort;
-    search_sort.set(savedSort);
-    sort_initialized.set(true); // Signal that sort is loaded
-  });
+  // Sync local state with store
+  let currentSort = $derived($search_sort);
 
   function handleSortChange(event: Event) {
     const target = event.target as HTMLSelectElement;
-    currentSort = target.value;
-    search_sort.set(currentSort);
-    saveSortSetting(currentSort);
+    search_sort.set(target.value);
+    saveSortSetting(target.value);
   }
 
   let sentinelElement: HTMLElement | null = $state(null);

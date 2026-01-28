@@ -2,6 +2,8 @@
 
 ## 1.0a1 (unreleased)
 
+- Add Playwright E2E test suite covering version display, sorting, mobile responsive, URL params, and static pages
+- Add URL parameter synchronization for shareable search links (q, version, type, sort params)
 - Fix version sorting to always show the latest package version (use upload_timestamp instead of lexicographic version_sortable)
 - Add "Sort by" label to the sorting dropdown for better UX and accessibility
 - Fix default filter checkboxes not being checked on page load (Svelte 5 bind:group reactivity issue)
