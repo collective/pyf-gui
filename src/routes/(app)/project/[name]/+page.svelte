@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { pageState } from '$lib/page-state.svelte';
   import {
     compactPloneVersions,
     compactPythonVersions,
@@ -7,8 +8,23 @@
     processProjectUrls,
     toLocalizedTime,
   } from "$lib/utils";
+  import { onDestroy } from 'svelte';
 
   let { data } = $props();
+
+  // Set page title and version on load
+  $effect(() => {
+    if (data.hit?.name) {
+      pageState.title = data.hit.name;
+      pageState.version = data.hit.version;
+    }
+  });
+
+  // Clear page title and version on unmount
+  onDestroy(() => {
+    pageState.title = null;
+    pageState.version = null;
+  });
 </script>
 
 {#if data.hit}
@@ -259,7 +275,7 @@
   /* Article/Description styles - PyPI project-description patterns */
   article {
     grid-area: content;
-    padding: var(--spacing-md, 30px) var(--spacing-md, 30px) var(--spacing-md, 30px);
+    padding: var(--spacing-md, 30px) 0 var(--spacing-md, 30px) var(--spacing-md, 30px);
     line-height: var(--line-height-content, 1.5);
 
     /* Package name heading */

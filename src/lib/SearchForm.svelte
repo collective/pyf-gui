@@ -1,16 +1,15 @@
 <script lang="ts">
-  import { doSearch, resetPagination } from "./search";
-  import { package_types, PRIMARY_PLONE_VERSION_THRESHOLD, default_sort } from "./settings";
-  import { default_plone_versions } from "./settings";
-  import { default_package_types } from "./settings";
-  import { plone_versions, search_term, search_filter, search_sort, sort_initialized } from "$lib/stores";
-  import { loadFilterSettings, saveFilterSettings, loadSortSetting } from "$lib/localStorage";
-  import { serializeToUrl, buildUrlString, type UrlSearchState } from "$lib/urlParams";
+  import { browser } from "$app/environment";
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
-  import { onMount } from "svelte";
-  import { browser } from "$app/environment";
   import type { Filter } from "$lib/interfaces";
+  import { loadFilterSettings, loadSortSetting, saveFilterSettings } from "$lib/localStorage";
+  import { pageState } from "$lib/page-state.svelte";
+  import { plone_versions, search_filter, search_sort, search_term, sort_initialized } from "$lib/stores";
+  import { buildUrlString, serializeToUrl, type UrlSearchState } from "$lib/urlParams";
+  import { onMount } from "svelte";
+  import { doSearch, resetPagination } from "./search";
+  import { default_package_types, default_plone_versions, default_sort, package_types, PRIMARY_PLONE_VERSION_THRESHOLD } from "./settings";
 
   // Props from load function
   interface Props {
@@ -37,6 +36,19 @@
   // Progressive disclosure states
   let showOlderVersions = $state(false);
   let showMoreTypes = $state(false);
+
+  // Two-way sync with pageState for mobile header search
+  $effect(() => {
+    if (pageState.searchTerm !== term) {
+      term = pageState.searchTerm;
+    }
+  });
+
+  $effect(() => {
+    if (term !== pageState.searchTerm) {
+      pageState.searchTerm = term;
+    }
+  });
 
   // Derived: split package types into primary and secondary
   let primaryTypes = $derived(package_types.filter(t => t.primary));
@@ -439,6 +451,14 @@
     &__field {
       border-bottom: 2px solid var(--color-border, #d3d3d3);
       padding: 0.2em 0 min(2.2em, 3vh) 0;
+    }
+    &__field:first-child {
+      padding-top: 0;
+      margin-top: 0;
+      .search-form__label{
+        padding-top: 0;
+        margin-top: 0;
+      }
     }
 
     &__input {

@@ -9,6 +9,6 @@
 - **Sorting** - Sort results by Title or Last modified date
 - **Show release date**: Sho release date in details page version list.
 
-## Phase 2: Post-Launch
+## Phase 2:
 
-- **Index Plone related packages from npmjs.com**: Since modern Plone frontends are built in JavaScript/TypeScript, we should include npm packages as well.
+- make a static version of the frontend, it should also work without JS enabled

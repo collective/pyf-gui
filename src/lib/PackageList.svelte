@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { package_list, is_loading, has_more, total_found, search_term, search_filter, search_sort } from "$lib/stores";
-  import { loadMore } from "$lib/search";
-  import { sort_options, default_sort } from "$lib/settings";
   import { saveSortSetting } from "$lib/localStorage";
   import PackageItem from "$lib/PackageItem.svelte";
-  import { onMount, onDestroy } from "svelte";
+  import { loadMore } from "$lib/search";
+  import { default_sort, sort_options } from "$lib/settings";
+  import { has_more, is_loading, package_list, search_filter, search_sort, search_term, total_found } from "$lib/stores";
+  import { onDestroy, onMount } from "svelte";
   import { get } from "svelte/store";
 
   // Sync local state with store
@@ -135,6 +135,8 @@
     align-items: flex-start;
     padding: var(--spacing-md, 1rem) var(--spacing-sm, 0.5rem);
     gap: var(--spacing-md, 1rem);
+    font-size: var(--font-size-base, 1rem);
+    font-weight: var(--font-weight-bold, 700);
 
     &__count {
       font-style: italic;
@@ -170,11 +172,11 @@
     .results-header {
       flex-direction: row;
       justify-content: space-between;
-      align-items: center;
+      align-items: start;
       padding: var(--spacing-md, 1rem) 0;
 
       &__count {
-        font-size: var(--font-size-xl, 1.4em);
+        font-size: var(--font-size-base, 1rem);
       }
 
       &__sort-wrapper {
