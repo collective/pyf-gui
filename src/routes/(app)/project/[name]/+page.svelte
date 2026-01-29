@@ -2,9 +2,10 @@
   import {
     compactPloneVersions,
     compactPythonVersions,
-    getPackageType,
-    toLocalizedTime,
     formatNumber,
+    getPackageType,
+    processProjectUrls,
+    toLocalizedTime,
   } from "$lib/utils";
 
   let { data } = $props();
@@ -154,6 +155,19 @@
     </div>
   </div>
   {/if}
+  {#if data.hit.project_urls && Object.keys(data.hit.project_urls).length > 0}
+  <div class="project-links">
+    <div class="sidebar-label">Project Links</div>
+    <div class="project-links_data">
+      {#each processProjectUrls(data.hit.project_urls) as link}
+        <a href={link.url} target="_blank" rel="noopener noreferrer" title={link.label}>
+          {@html link.icon}
+          <span>{link.label}</span>
+        </a>
+      {/each}
+    </div>
+  </div>
+  {/if}
   <div class="versions">
       <div class="sidebar-label">Releases on <a href="{data.hit.project_url}" target="_blank" title="open project page on PyPi">PyPi</a></div>
       <ul class="releases">
@@ -196,7 +210,7 @@
   <div class="type">Type: {getPackageType(data.hit.classifiers)}</div>
 </aside>
 <article class="description">
-  <h1>{data.hit.name}</h1>
+  <!-- <h1>{data.hit.name}</h1> -->
   {@html data.hit.description}
 </article>
 {/if}
@@ -205,11 +219,11 @@
   aside {
     --box-padding: 0.8em;
     grid-area: sidebar;
-    padding: 2em 0 2em 0;
+    padding: var(--spacing-md, 1rem) 0 var(--spacing-md, 1rem) 0;
   }
   article {
     grid-area: content;
-    padding: 0 2em 2em 2em;
+    padding: var(--spacing-md, 1rem) 2em 2em 2em;
     h1{
       border-bottom: 5px solid var(--bs-primary);
       font-weight: bold;
@@ -335,6 +349,43 @@
         svg {
           align-self: center;
           padding-bottom: 0.2em;
+        }
+        span {
+          padding: 0 0.4em;
+          align-self: center;
+        }
+      }
+    }
+  }
+  .project-links {
+    padding: var(--box-padding);
+    background-color: #e8e8f4;
+    color: var(--fbc-primary-text);
+    font-size: 0.9em;
+    margin-top: 1em;
+    svg {
+      width: auto;
+      height: 1.2em;
+      flex-shrink: 0;
+    }
+    .project-links_data {
+      display: flex;
+      flex-wrap: wrap;
+      flex-direction: column;
+      padding: 0.5em 0;
+      a {
+        display: flex;
+        align-items: center;
+        padding: 0.3em 0.5em;
+        text-decoration: none;
+        color: var(--fbc-primary-text);
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+        &:hover {
+          background-color: rgba(0, 0, 0, 0.08);
+        }
+        svg {
+          align-self: center;
         }
         span {
           padding: 0 0.4em;

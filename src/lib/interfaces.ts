@@ -48,4 +48,7 @@ export interface Package {
     metadata?: number;
     recency?: number;
   };
+
+  // Project URLs from PyPI metadata
+  project_urls?: Record<string, string>;
 }
