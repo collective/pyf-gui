@@ -11,6 +11,7 @@
   import { onDestroy } from 'svelte';
 
   let { data } = $props();
+  let versionsExpanded = $state(false);
 
   // Set page title and version on load
   $effect(() => {
@@ -198,8 +199,24 @@
   </div>
   {/if}
   <div class="versions">
-      <div class="sidebar-label">Releases on <a href="{data.hit.project_url}" target="_blank" title="open project page on PyPi">PyPi</a></div>
-      <ul class="releases">
+      <div class="sidebar-label versions-header">
+        Releases on <a href="{data.hit.project_url}" target="_blank" title="open project page on PyPi">PyPi</a>
+        <button
+          class="versions-toggle"
+          onclick={() => versionsExpanded = !versionsExpanded}
+          aria-expanded={versionsExpanded}
+          aria-label={versionsExpanded ? "Collapse versions" : "Expand versions"}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            {#if versionsExpanded}
+              <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"/>
+            {:else}
+              <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+            {/if}
+          </svg>
+        </button>
+      </div>
+      <ul class="releases" class:collapsed={!versionsExpanded}>
         {#each data.releases as release}
           <li>
             <div class="release">
@@ -253,6 +270,10 @@
     --section-border: 2px solid var(--color-border, #dcdcdc);
     grid-area: sidebar;
     padding: var(--spacing-md, 30px) 0;
+
+    @media (max-width: 640px) {
+      padding: var(--spacing-half, 15px) var(--spacing-quarter, 7.5px);
+    }
   }
 
   .sidebar-label {
@@ -277,6 +298,10 @@
     grid-area: content;
     padding: var(--spacing-md, 30px) 0 var(--spacing-md, 30px) var(--spacing-md, 30px);
     line-height: var(--line-height-content, 1.5);
+
+    @media (max-width: 640px) {
+      padding: var(--spacing-half, 15px) var(--spacing-quarter, 7.5px);
+    }
 
     /* Package name heading */
     :global(h1) {
@@ -421,6 +446,37 @@
     border-bottom: var(--section-border);
     color: var(--color-text, #464646);
 
+    .versions-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .versions-toggle {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0.25rem;
+      color: var(--color-text, #464646);
+      border-radius: var(--border-radius-sm, 4px);
+
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.08);
+      }
+
+      &:focus {
+        outline: 2px solid var(--color-primary, #006dad);
+        outline-offset: 2px;
+      }
+
+      @media (max-width: 640px) {
+        display: inline-flex;
+      }
+    }
+
     ul {
       list-style-type: none;
       margin: 0;
@@ -434,6 +490,12 @@
 
     .releases {
       padding: 0;
+
+      &.collapsed {
+        @media (max-width: 640px) {
+          display: none;
+        }
+      }
 
       li {
         display: flex;

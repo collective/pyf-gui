@@ -116,7 +116,7 @@
       min-height: 4rem;
 
       @media (max-width: 768px) {
-        min-height: 2rem;
+        min-height: 4rem;
       }
     }
 
