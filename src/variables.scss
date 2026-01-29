@@ -12,13 +12,15 @@ $breakpoint-md: 640px;
 $breakpoint-lg: 1024px;
 $breakpoint-xl: 1280px;
 
-/* Spacing Scale */
-$spacing-xs: 0.25rem;
-$spacing-sm: 0.5rem;
-$spacing-md: 1rem;
-$spacing-lg: 1.5rem;
-$spacing-xl: 2rem;
-$spacing-2xl: 3rem;
+/* Spacing Scale - PyPI style (30px base) */
+$spacing-unit: 30px;
+$spacing-half: 15px;
+$spacing-quarter: 7.5px;
+$spacing-xs: 7.5px;
+$spacing-sm: 15px;
+$spacing-md: 30px;
+$spacing-lg: 45px;
+$spacing-xl: 60px;
 
 /* Bootstrap Variables Override */
 @import 'bootstrap/scss/variables';

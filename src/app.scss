@@ -41,40 +41,65 @@
 /* Theme Layer - Design Tokens */
 @layer theme {
   :root {
-    /* Color Tokens */
-    --color-primary: #0095d3;
+    /* Typography Tokens - PyPI style */
+    --font-family-base: "Source Sans 3", "Helvetica", arial, sans-serif;
+    --font-family-code: "Source Code Pro", monospace;
+    --font-size-base: 1rem;
+    --font-size-sm: 0.8rem;
+    --font-size-lg: 1.1rem;
+    --font-size-xl: 1.15rem;
+    --font-size-2xl: 1.3rem;
+    --font-size-3xl: 1.5rem;
+    --font-size-4xl: 2.5rem;
+    --line-height-base: 1.4;
+    --line-height-content: 1.5;
+    --font-weight-normal: 400;
+    --font-weight-bold: 600;
+
+    /* Spacing Tokens - PyPI style (30px base) */
+    --spacing-unit: 30px;
+    --spacing-half: 15px;
+    --spacing-quarter: 7.5px;
+    --spacing-xs: 7.5px;
+    --spacing-sm: 15px;
+    --spacing-md: 30px;
+    --spacing-lg: 45px;
+    --spacing-xl: 60px;
+
+    /* Color Tokens - PyPI style */
+    --color-primary: #006dad;
     --color-secondary: #fffdda;
-    --color-background: #fff;
-    --color-text: #333;
+    --color-background: #fdfdfd;
+    --color-text: #464646;
     --color-text-muted: #666;
     --color-text-light: #777;
-    --color-border: #d3d3d3;
+    --color-border: #dcdcdc;
+    --color-grey-base: #ececec;
+    --color-grey-light: #bbb;
     --color-accent: #ff6600;
-
-    /* Spacing Tokens (8px base) */
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 1.5rem;
-    --spacing-xl: 2rem;
-    --spacing-2xl: 3rem;
-
-    /* Typography Tokens */
-    --font-family-base: Verdana, Geneva, Tahoma, sans-serif;
-    --font-size-base: 1rem;
-    --font-size-sm: 0.875rem;
-    --font-size-lg: 1.125rem;
-    --font-size-xl: 1.25rem;
-    --font-size-2xl: 1.5rem;
-    --font-weight-normal: 400;
-    --font-weight-semibold: 600;
-    --font-weight-bold: 700;
 
     /* Layout Tokens */
     --sidebar-width: clamp(24ch, 28ch, 30ch);
     --content-width: clamp(60ch, 90ch, 110ch);
+    --container-width: 1150px;
+    --container-narrow: 940px;
     --border-radius-sm: 4px;
     --border-radius-md: 8px;
+  }
+
+  /* Mobile typography adjustments */
+  @media (max-width: 480px) {
+    :root {
+      --font-size-base: 0.95rem;
+      --font-size-4xl: 1.8rem;
+    }
+  }
+
+  /* Tablet typography adjustments */
+  @media (min-width: 481px) and (max-width: 800px) {
+    :root {
+      --font-size-4xl: 2.2rem;
+    }
   }
 }
 
@@ -83,6 +108,9 @@
   body {
     background-color: var(--color-background);
     font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    color: var(--color-text);
 
     /* Mobile: single column flex layout */
     display: flex;
