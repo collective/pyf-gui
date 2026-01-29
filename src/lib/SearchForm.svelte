@@ -37,17 +37,37 @@
   let showOlderVersions = $state(false);
   let showMoreTypes = $state(false);
 
-  // Two-way sync with pageState for mobile header search
-  $effect(() => {
-    if (pageState.searchTerm !== term) {
-      term = pageState.searchTerm;
-    }
-  });
+  // Track last synced values for two-way sync
+  let lastSyncedTerm = '';
+  let lastSyncedPageState = '';
 
+  // Two-way sync with pageState for mobile header search
+  // Uses tracking to determine which source changed and sync appropriately
   $effect(() => {
-    if (term !== pageState.searchTerm) {
-      pageState.searchTerm = term;
+    const currentTerm = term;
+    const currentPageState = pageState.searchTerm;
+
+    // Determine what changed
+    const termChanged = currentTerm !== lastSyncedTerm;
+    const pageStateChanged = currentPageState !== lastSyncedPageState;
+
+    if (termChanged && !pageStateChanged) {
+      // Desktop input changed - sync to pageState
+      pageState.searchTerm = currentTerm;
+      lastSyncedPageState = currentTerm;
+      lastSyncedTerm = currentTerm;
+    } else if (pageStateChanged && !termChanged) {
+      // Mobile input changed - sync to term
+      term = currentPageState;
+      lastSyncedTerm = currentPageState;
+      lastSyncedPageState = currentPageState;
+    } else if (termChanged && pageStateChanged) {
+      // Both changed - prefer term (desktop input has priority since SearchForm owns it)
+      pageState.searchTerm = currentTerm;
+      lastSyncedPageState = currentTerm;
+      lastSyncedTerm = currentTerm;
     }
+    // If neither changed, do nothing
   });
 
   // Derived: split package types into primary and secondary
@@ -84,7 +104,10 @@
   onMount(() => {
     if (urlHasParams) {
       // URL params take priority
-      term = urlParams.searchTerm === '*' ? '' : urlParams.searchTerm;
+      const searchTermFromUrl = urlParams.searchTerm === '*' ? '' : urlParams.searchTerm;
+      term = searchTermFromUrl;
+      // Also update pageState to prevent the sync effect from overwriting
+      pageState.searchTerm = searchTermFromUrl;
       pVersions = urlParams.ploneVersions;
       pTypes = urlParams.packageTypes;
       // Set sort from URL if present
@@ -135,7 +158,10 @@
     const urlSort = currentUrl.searchParams.get('sort');
 
     // Update local state from URL
-    term = urlQ || '';
+    const newTerm = urlQ || '';
+    term = newTerm;
+    // Also update pageState to keep mobile search in sync
+    pageState.searchTerm = newTerm;
 
     if (urlVersion !== null) {
       pVersions = urlVersion.split(',').map(v => `Plone ${v.trim()}`);
