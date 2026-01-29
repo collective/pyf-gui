@@ -168,6 +168,19 @@
     </div>
   </div>
   {/if}
+  {#if data.hit.contributors && data.hit.contributors.length > 0}
+  <div class="contributors">
+    <div class="sidebar-label">Most active Contributors</div>
+    <div class="contributors_data">
+      {#each data.hit.contributors as contributor}
+        <a href="https://github.com/{contributor.username}" target="_blank" rel="noopener noreferrer" title="{contributor.username}">
+          <img src={contributor.avatar_url} alt={contributor.username} class="avatar" />
+          <span>{contributor.username}</span>
+        </a>
+      {/each}
+    </div>
+  </div>
+  {/if}
   <div class="versions">
       <div class="sidebar-label">Releases on <a href="{data.hit.project_url}" target="_blank" title="open project page on PyPi">PyPi</a></div>
       <ul class="releases">
@@ -223,7 +236,7 @@
     --section-margin: 20px;
     --section-border: 2px solid var(--color-border, #dcdcdc);
     grid-area: sidebar;
-    padding: var(--spacing-sm, 15px) 0;
+    padding: var(--spacing-md, 30px) 0;
   }
 
   .sidebar-label {
@@ -246,7 +259,7 @@
   /* Article/Description styles - PyPI project-description patterns */
   article {
     grid-area: content;
-    padding: var(--spacing-sm, 15px) var(--spacing-md, 30px) var(--spacing-md, 30px);
+    padding: var(--spacing-md, 30px) var(--spacing-md, 30px) var(--spacing-md, 30px);
     line-height: var(--line-height-content, 1.5);
 
     /* Package name heading */
@@ -254,8 +267,8 @@
       font-size: var(--font-size-4xl, 2.5rem);
       font-weight: var(--font-weight-bold, 600);
       border-bottom: 5px solid var(--color-primary, #006dad);
-      padding: var(--spacing-half, 15px) 0;
-      margin: 0 0 var(--spacing-md, 30px) 0;
+      padding: 0;
+      margin: -0.4rem 0 var(--spacing-md, 30px) 0;
     }
 
     /* Content headings with PyPI spacing */
@@ -575,6 +588,49 @@
         span {
           padding: 0 var(--spacing-quarter, 7.5px);
           align-self: center;
+        }
+      }
+    }
+  }
+
+  /* contributors section with light purple background */
+  .contributors {
+    padding: var(--box-padding);
+    padding-bottom: var(--section-padding);
+    margin-bottom: var(--section-margin);
+    border-bottom: var(--section-border);
+    background-color: #f0e8f4;
+    color: var(--color-text, #464646);
+    font-size: var(--font-size-sm, 0.8rem);
+
+    .contributors_data {
+      display: flex;
+      flex-direction: column;
+      padding: var(--spacing-quarter, 7.5px) 0;
+
+      a {
+        display: flex;
+        align-items: center;
+        padding: var(--spacing-quarter, 7.5px);
+        text-decoration: none;
+        color: var(--color-primary, #006dad);
+        border-radius: var(--border-radius-sm, 4px);
+        transition: background-color 0.2s ease;
+
+        &:hover {
+          background-color: rgba(0, 0, 0, 0.08);
+        }
+
+        .avatar {
+          width: 50px;
+          height: 50px;
+          border-radius: 4px;
+          margin-right: var(--spacing-half, 15px);
+          flex-shrink: 0;
+        }
+
+        span {
+          font-size: var(--font-size-base, 1rem);
         }
       }
     }

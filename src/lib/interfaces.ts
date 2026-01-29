@@ -4,6 +4,12 @@ export interface Filter {
     package_types: string[];
 }
 
+export interface Contributor {
+  avatar_url: string;
+  contributions: number;
+  username: string;
+}
+
 export interface GroupedHit {
     group_key: string[];
     hits: Array<{ document: Package }>;
@@ -51,4 +57,7 @@ export interface Package {
 
   // Project URLs from PyPI metadata
   project_urls?: Record<string, string>;
+
+  // Contributors
+  contributors?: Contributor[];
 }
