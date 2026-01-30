@@ -9,7 +9,7 @@
   import { buildUrlString, serializeToUrl, type UrlSearchState } from "$lib/urlParams";
   import { onMount } from "svelte";
   import { doSearch, resetPagination } from "./search";
-  import { default_package_types, default_plone_versions, default_sort, package_types, PRIMARY_PLONE_VERSION_THRESHOLD } from "./settings";
+  import { default_package_types, default_plone_versions, default_sort, package_types, PRIMARY_PLONE_VERSION_THRESHOLD, relevance_sort_option } from "./settings";
 
   // Props from load function
   interface Props {
@@ -111,7 +111,14 @@
       pVersions = urlParams.ploneVersions;
       pTypes = urlParams.packageTypes;
       // Set sort from URL if present
-      if (urlParams.sort !== default_sort) {
+      // Validate: relevance sort requires active search term
+      const hasActiveSearchTerm = searchTermFromUrl !== '' && searchTermFromUrl !== '*';
+      const isRelevanceSort = urlParams.sort === relevance_sort_option.value;
+      if (isRelevanceSort && !hasActiveSearchTerm) {
+        // Relevance sort without search term - fall back to default
+        const savedSort = loadSortSetting();
+        search_sort.set(savedSort);
+      } else if (urlParams.sort !== default_sort) {
         search_sort.set(urlParams.sort);
       } else {
         const savedSort = loadSortSetting();
@@ -181,8 +188,14 @@
       pTypes = [...default_package_types];
     }
 
-    if (urlSort !== null) {
+    // Validate: relevance sort requires active search term
+    const hasActiveSearchTerm = newTerm !== '' && newTerm !== '*';
+    const isRelevanceSort = urlSort === relevance_sort_option.value;
+    if (urlSort !== null && !(isRelevanceSort && !hasActiveSearchTerm)) {
       search_sort.set(urlSort);
+    } else if (isRelevanceSort && !hasActiveSearchTerm) {
+      // Relevance sort without search term - fall back to default
+      search_sort.set(default_sort);
     } else {
       search_sort.set(default_sort);
     }

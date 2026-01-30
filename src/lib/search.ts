@@ -1,15 +1,11 @@
-import { package_list, results_count, plone_versions, current_page, is_loading, has_more, total_found, search_sort } from "./stores";
-import { default_sort } from "./settings";
+import { PUBLIC_SEARCH_API_KEY, PUBLIC_SEARCH_COLLECTION, PUBLIC_SEARCH_HOST, PUBLIC_SEARCH_PORT, PUBLIC_SEARCH_PROTOCOL } from '$env/static/public';
+import type { Filter, VersionInfo } from '$lib/interfaces';
 import { get } from "svelte/store";
 import { Client } from "typesense";
-import { PUBLIC_SEARCH_PROTOCOL } from '$env/static/public';
-import { PUBLIC_SEARCH_HOST } from '$env/static/public';
-import { PUBLIC_SEARCH_PORT } from '$env/static/public';
-import { PUBLIC_SEARCH_API_KEY } from '$env/static/public';
-import { PUBLIC_SEARCH_COLLECTION } from '$env/static/public';
+import { default_sort } from "./settings";
+import { current_page, has_more, is_loading, package_list, plone_versions, results_count, search_sort, total_found } from "./stores";
 
 export const collectionName = PUBLIC_SEARCH_COLLECTION;
-import type { VersionInfo, Filter } from '$lib/interfaces';
 
 const PER_PAGE = 30;
 
@@ -90,15 +86,26 @@ export function doSearch(
     'q': term,
     'collection': PUBLIC_SEARCH_COLLECTION
   }
-  // Build sort_by: prepend _text_match:desc when search term is active for relevance
-  const sortBy = term && term !== '*'
-    ? `_text_match:desc,${sort},upload_timestamp:desc`
-    : `${sort},upload_timestamp:desc`;
+  // Build sort_by based on sort selection and search term
+  let sortBy: string;
+  if (sort === '_text_match:desc') {
+    // Pure relevance sort - user explicitly selected "By Relevance"
+    sortBy = '_text_match:desc';
+  } else if (term && term !== '*') {
+    // Search term active - prepend relevance to maintain match quality
+    sortBy = `_text_match:desc,${sort},upload_timestamp:desc`;
+  } else {
+    // No search term - use selected sort with timestamp fallback
+    sortBy = `${sort},upload_timestamp:desc`;
+  }
 
+  const query_by = "name,title,keywords,first_chapter,main_content,changelog";
+  const query_by_weights = "80,80,60,40,30,1";
   let searchRequests = {
     'searches': [
       {
-        'query_by': 'name,keywords,summary,description',
+        'query_by': query_by,
+        'query_by_weights': query_by_weights,
         'sort_by': sortBy,
         'facet_by': 'framework_versions,python_versions',
         'filter_by': filterString
@@ -107,7 +114,8 @@ export function doSearch(
   }
   if (filter && filter.plone_versions.length > 0) {
     let facetSearch = {
-      'query_by': 'name,keywords,summary,description',
+      'query_by': query_by,
+      'query_by_weights': query_by_weights,
       'facet_by': 'framework_versions,python_versions',
       'filter_by': baseFilterString
     }

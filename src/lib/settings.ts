@@ -28,4 +28,10 @@ export const sort_options = [
   { value: 'upload_timestamp:desc', title: 'Last Modified' }
 ];
 
+// Relevance sort option - only shown when search term is active
+export const relevance_sort_option = {
+  value: '_text_match:desc',
+  title: 'By Relevance'
+};
+
 export const default_sort = 'name_sortable:asc';

@@ -2,13 +2,31 @@
   import { saveSortSetting } from "$lib/localStorage";
   import PackageItem from "$lib/PackageItem.svelte";
   import { loadMore } from "$lib/search";
-  import { default_sort, sort_options } from "$lib/settings";
+  import { default_sort, relevance_sort_option, sort_options } from "$lib/settings";
   import { has_more, is_loading, package_list, search_filter, search_sort, search_term, total_found } from "$lib/stores";
   import { onDestroy, onMount } from "svelte";
   import { get } from "svelte/store";
 
   // Sync local state with store
   let currentSort = $derived($search_sort);
+
+  // Check if there's an active search term (not empty or wildcard)
+  let hasActiveSearch = $derived($search_term !== '' && $search_term !== '*');
+
+  // Build available sort options - include relevance only when searching
+  let availableSortOptions = $derived(
+    hasActiveSearch
+      ? [relevance_sort_option, ...sort_options]
+      : sort_options
+  );
+
+  // Fallback to default sort if relevance becomes unavailable (search cleared)
+  $effect(() => {
+    if (!hasActiveSearch && $search_sort === relevance_sort_option.value) {
+      search_sort.set(default_sort);
+      saveSortSetting(default_sort);
+    }
+  });
 
   function handleSortChange(event: Event) {
     const target = event.target as HTMLSelectElement;
@@ -59,7 +77,7 @@
   <div class="results-header__sort-wrapper">
     <label class="results-header__sort-label" for="sort-select">Sort by</label>
     <select id="sort-select" class="form-select results-header__sort" onchange={handleSortChange} value={currentSort}>
-      {#each sort_options as option}
+      {#each availableSortOptions as option}
         <option value={option.value}>{option.title}</option>
       {/each}
     </select>
