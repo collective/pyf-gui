@@ -198,7 +198,7 @@
     </div>
   </div>
   {/if}
-  <div class="versions">
+  <div class="versions" class:expanded={versionsExpanded}>
       <div class="sidebar-label versions-header">
         Releases on <a href="{data.hit.project_url}" target="_blank" title="open project page on PyPi">PyPi</a>
         <button
@@ -525,6 +525,44 @@
               object-fit: contain;
               align-self: flex-start;
             }
+          }
+        }
+      }
+    }
+
+    /* Mobile expanded state - match mobile filters style */
+    @media (max-width: 640px) {
+      &.expanded {
+        background: var(--color-primary, #0095d3);
+        border-bottom: none;
+
+        /* White text for all elements inside */
+        color: #fff;
+        --color-text: #fff;
+        --color-text-muted: rgba(255, 255, 255, 0.8);
+        --color-border: transparent;
+
+        a {
+          color: #fff;
+        }
+
+        .sidebar-label {
+          border-bottom-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .releases li:nth-child(even) {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .versions-toggle {
+          color: #fff;
+
+          &:hover {
+            background: rgba(255, 255, 255, 0.1);
+          }
+
+          &:focus {
+            outline-color: #fff;
           }
         }
       }
