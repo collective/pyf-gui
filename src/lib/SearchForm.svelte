@@ -200,7 +200,14 @@
       // Relevance sort without search term - fall back to default
       search_sort.set(default_sort);
     } else {
-      search_sort.set(default_sort);
+      // No sort in URL - load from localStorage
+      const savedSort = loadSortSetting();
+      // Validate: if saved sort is relevance without search term, use default
+      if (savedSort === relevance_sort_option.value && !hasActiveSearchTerm) {
+        search_sort.set(default_sort);
+      } else {
+        search_sort.set(savedSort);
+      }
     }
 
     // Reset flag after a tick

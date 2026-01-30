@@ -36,9 +36,14 @@ test.describe('Version Display', () => {
 		await searchPage.goto();
 		await expect(searchPage.packageCards.first()).toBeVisible();
 
-		// The ul element should have a title attribute with all versions
-		const versionList = searchPage.page.locator('.package-card__plone-versions ul').first();
-		const titleAttr = await versionList.getAttribute('title');
+		// Find a package that has Plone versions (title attribute with content)
+		const versionListWithTitle = searchPage.page.locator(
+			'.package-card__plone-versions ul[title]:not([title=""])'
+		).first();
+
+		await expect(versionListWithTitle).toBeVisible();
+
+		const titleAttr = await versionListWithTitle.getAttribute('title');
 
 		expect(titleAttr).not.toBeNull();
 		expect(titleAttr!.length).toBeGreaterThan(0);
