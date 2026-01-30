@@ -195,3 +195,28 @@ export function resetPagination() {
   total_found.set(0);
   package_list.set([]);
 }
+
+// Fetch facets only (for initial page load to populate version filters)
+export async function fetchInitialFacets() {
+  try {
+    const result = await searchClient.collections(collectionName).documents().search({
+      q: '*',
+      facet_by: 'framework_versions',
+      per_page: 0,
+      filter_by: "classifiers:=['Framework :: Plone', 'Framework :: Plone :: Addon', 'Framework :: Plone :: Theme', 'Framework :: Plone :: Core', 'Framework :: Plone :: Distribution']"
+    });
+
+    if (result.facet_counts) {
+      result.facet_counts.forEach((facet: any) => {
+        if (facet.field_name === 'framework_versions') {
+          const versions: VersionInfo[] = facet.counts.map((v: VersionInfo) => v);
+          plone_versions.set(versions.sort((a, b) => {
+            return b.value.toUpperCase().localeCompare(a.value.toUpperCase());
+          }));
+        }
+      });
+    }
+  } catch (error) {
+    console.error("Failed to fetch initial facets:", error);
+  }
+}

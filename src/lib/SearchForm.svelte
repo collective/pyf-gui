@@ -8,7 +8,7 @@
   import { plone_versions, search_filter, search_sort, search_term, sort_initialized } from "$lib/stores";
   import { buildUrlString, serializeToUrl, type UrlSearchState } from "$lib/urlParams";
   import { onMount } from "svelte";
-  import { doSearch, resetPagination } from "./search";
+  import { doSearch, resetPagination, fetchInitialFacets } from "./search";
   import { default_package_types, default_plone_versions, default_sort, package_types, PRIMARY_PLONE_VERSION_THRESHOLD, relevance_sort_option } from "./settings";
 
   // Props from load function
@@ -101,7 +101,10 @@
   );
 
   // Initialize state: URL params > localStorage > defaults
-  onMount(() => {
+  onMount(async () => {
+    // Fetch all available versions immediately for filter display
+    await fetchInitialFacets();
+
     if (urlHasParams) {
       // URL params take priority
       const searchTermFromUrl = urlParams.searchTerm === '*' ? '' : urlParams.searchTerm;

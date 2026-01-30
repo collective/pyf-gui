@@ -11,6 +11,7 @@ export const PRIMARY_PLONE_VERSION_THRESHOLD = "5.2";
 
 // Default selected Plone versions
 export const default_plone_versions = [
+  "Plone 6.2",
   "Plone 6.1",
   "Plone 6.0",
   "Plone 5.2"
