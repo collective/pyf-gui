@@ -11,3 +11,5 @@ node_modules
 /.playwright-mcp
 /.claude/
 /playwright-report/index.html
+/playwright-report
+/test-results

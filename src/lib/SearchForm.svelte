@@ -30,6 +30,12 @@
   // Debounce timer for search term
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
+  // Track whether the previous search term was active (for auto-relevance selection)
+  let lastSearchTermWasActive = $state(false);
+
+  // Track search state for the search effect (separate from auto-sort tracking)
+  let lastSearchHadActiveTerm = $state(false);
+
   // Track the previous URL to detect actual browser navigation
   let previousUrl = $state<string | null>(null);
 
@@ -117,6 +123,11 @@
       // Validate: relevance sort requires active search term
       const hasActiveSearchTerm = searchTermFromUrl !== '' && searchTermFromUrl !== '*';
       const isRelevanceSort = urlParams.sort === relevance_sort_option.value;
+      // Mark that we loaded with a search term to prevent auto-relevance override
+      if (hasActiveSearchTerm) {
+        lastSearchHadActiveTerm = true;
+        lastSearchTermWasActive = true;
+      }
       if (isRelevanceSort && !hasActiveSearchTerm) {
         // Relevance sort without search term - fall back to default
         const savedSort = loadSortSetting();
@@ -270,10 +281,19 @@
   });
 
   // Track search term changes with debounce
+  // Auto-select relevance sort BEFORE debounce fires to ensure first search uses correct sort
   $effect(() => {
     if (!isInitialized) return;
 
     const _term = term; // Track dependency
+    const hasActiveSearch = _term !== '' && _term !== '*';
+    const wasSearchActive = lastSearchTermWasActive;
+
+    // Auto-select relevance sort when search term is entered (before debounce)
+    if (hasActiveSearch && !wasSearchActive) {
+      search_sort.set(relevance_sort_option.value);
+    }
+    lastSearchTermWasActive = hasActiveSearch;
 
     if (debounceTimer) {
       clearTimeout(debounceTimer);
@@ -302,11 +322,24 @@
     // Update stores for other components to access
     search_term.set(term);
     search_filter.set(filter);
-    // Read sort value reactively ($ prefix makes it a dependency)
-    const sort = $search_sort;
+
+    const hasActiveSearch = term !== '' && term !== '*';
+    const storeSort = $search_sort;
+
+    // Compute effective sort - handles race condition where
+    // the auto-sort effect hasn't updated the store yet
+    let effectiveSort = storeSort;
+    if (hasActiveSearch && storeSort !== relevance_sort_option.value) {
+      // First search with active term should use relevance
+      if (!lastSearchHadActiveTerm) {
+        effectiveSort = relevance_sort_option.value;
+      }
+    }
+    lastSearchHadActiveTerm = hasActiveSearch;
+
     // Reset pagination and perform new search
     resetPagination();
-    doSearch(term, filter, 1, false, sort);
+    doSearch(term, filter, 1, false, effectiveSort);
   });
 
   function handleSubmit(e: Event) {

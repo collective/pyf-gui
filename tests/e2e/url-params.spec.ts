@@ -1,7 +1,21 @@
-import { test, expect } from './fixtures';
+import { test, expect, SearchPage, type Page, type Browser } from './fixtures';
 
 test.describe('URL Parameters', () => {
-	test('loads search term from URL params', async ({ searchPage }) => {
+	test.describe.configure({ mode: 'serial' });
+
+	let page: Page;
+	let searchPage: SearchPage;
+
+	test.beforeAll(async ({ browser }: { browser: Browser }) => {
+		page = await browser.newPage();
+		searchPage = new SearchPage(page);
+	});
+
+	test.afterAll(async () => {
+		await page.close();
+	});
+
+	test('loads search term from URL params', async () => {
 		// Navigate with search param
 		await searchPage.gotoWithParams('q=plone.restapi');
 
@@ -9,7 +23,7 @@ test.describe('URL Parameters', () => {
 		await expect(searchPage.searchInput).toHaveValue('plone.restapi');
 	});
 
-	test('loads sort from URL params', async ({ searchPage }) => {
+	test('loads sort from URL params', async () => {
 		// Navigate with sort param
 		await searchPage.gotoWithParams('sort=upload_timestamp:desc');
 
@@ -18,7 +32,7 @@ test.describe('URL Parameters', () => {
 		expect(sortValue).toBe('upload_timestamp:desc');
 	});
 
-	test('loads multiple params from URL', async ({ searchPage }) => {
+	test('loads multiple params from URL', async () => {
 		// Navigate with multiple params
 		await searchPage.gotoWithParams('q=collective&sort=name_sortable:desc');
 
@@ -30,7 +44,7 @@ test.describe('URL Parameters', () => {
 		expect(sortValue).toBe('name_sortable:desc');
 	});
 
-	test('omits default params for clean URLs', async ({ searchPage }) => {
+	test('omits default params for clean URLs', async () => {
 		await searchPage.goto();
 		await expect(searchPage.packageCards.first()).toBeVisible();
 
@@ -39,7 +53,7 @@ test.describe('URL Parameters', () => {
 		expect(url).toBe('');
 	});
 
-	test('URL params override localStorage', async ({ searchPage }) => {
+	test('URL params override localStorage', async () => {
 		// Set localStorage sort preference (correct key: pyf_sort)
 		await searchPage.page.goto('/');
 		await searchPage.page.evaluate(() => {

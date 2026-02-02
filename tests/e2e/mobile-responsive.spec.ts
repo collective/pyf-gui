@@ -1,29 +1,65 @@
-import { test, expect } from './fixtures';
+import { test, expect, SearchPage, type Page, type Browser } from './fixtures';
 
-test.describe('Mobile Responsive', () => {
-	test('hides filter toggle on desktop (>=640px)', async ({ searchPage }) => {
-		// Ensure we're at desktop size
-		await searchPage.page.setViewportSize({ width: 800, height: 600 });
+test.describe('Mobile Responsive - Desktop', () => {
+	test.describe.configure({ mode: 'serial' });
+
+	let page: Page;
+	let searchPage: SearchPage;
+
+	test.beforeAll(async ({ browser }: { browser: Browser }) => {
+		page = await browser.newPage();
+		await page.setViewportSize({ width: 800, height: 600 });
+		searchPage = new SearchPage(page);
 		await searchPage.goto();
+	});
 
+	test.afterAll(async () => {
+		await page.close();
+	});
+
+	test('hides filter toggle on desktop (>=640px)', async () => {
 		// Filter toggle should not be visible on desktop
 		await expect(searchPage.filterToggle).not.toBeVisible();
 	});
 
-	test('shows filter toggle on mobile (<640px)', async ({ searchPage }) => {
-		// Set mobile viewport
-		await searchPage.page.setViewportSize({ width: 375, height: 667 });
-		await searchPage.goto();
+	test('shows progressive disclosure toggle for older versions on desktop', async () => {
+		// More versions toggle should be visible
+		await expect(searchPage.moreVersionsToggle).toBeVisible();
 
+		// Should have appropriate aria attributes
+		await expect(searchPage.moreVersionsToggle).toHaveAttribute('aria-expanded', 'false');
+
+		// Click to expand
+		await searchPage.moreVersionsToggle.click();
+
+		// Should update aria-expanded
+		await expect(searchPage.moreVersionsToggle).toHaveAttribute('aria-expanded', 'true');
+	});
+});
+
+test.describe('Mobile Responsive - Mobile', () => {
+	test.describe.configure({ mode: 'serial' });
+
+	let page: Page;
+	let searchPage: SearchPage;
+
+	test.beforeAll(async ({ browser }: { browser: Browser }) => {
+		page = await browser.newPage();
+		await page.setViewportSize({ width: 375, height: 667 });
+		searchPage = new SearchPage(page);
+		await searchPage.goto();
+	});
+
+	test.afterAll(async () => {
+		await page.close();
+	});
+
+	test('shows filter toggle on mobile (<640px)', async () => {
 		// Filter toggle should be visible on mobile
 		await expect(searchPage.filterToggle).toBeVisible();
 	});
 
-	test('expands sidebar when toggle clicked', async ({ searchPage }) => {
-		// Set mobile viewport
-		await searchPage.page.setViewportSize({ width: 375, height: 667 });
-		await searchPage.goto();
-
+	test('expands sidebar when toggle clicked', async () => {
 		// Initially sidebar should be hidden
 		await expect(searchPage.filtersPanel).not.toBeVisible();
 
@@ -35,13 +71,8 @@ test.describe('Mobile Responsive', () => {
 		await expect(searchPage.filtersPanel).toHaveClass(/expanded/);
 	});
 
-	test('collapses sidebar when toggle clicked again', async ({ searchPage }) => {
-		// Set mobile viewport
-		await searchPage.page.setViewportSize({ width: 375, height: 667 });
-		await searchPage.goto();
-
-		// Open sidebar
-		await searchPage.toggleFilters();
+	test('collapses sidebar when toggle clicked again', async () => {
+		// Sidebar should be visible from previous test
 		await expect(searchPage.filtersPanel).toBeVisible();
 
 		// Close sidebar
@@ -51,15 +82,10 @@ test.describe('Mobile Responsive', () => {
 		await expect(searchPage.filtersPanel).not.toBeVisible();
 	});
 
-	test('shows progressive disclosure toggle for older versions', async ({ searchPage }) => {
-		await searchPage.goto();
-
+	test('shows progressive disclosure toggle for older versions on mobile', async () => {
 		// On mobile, we need to expand the sidebar first
-		const isMobile = await searchPage.filterToggle.isVisible();
-		if (isMobile) {
-			await searchPage.toggleFilters();
-			await expect(searchPage.filtersPanel).toBeVisible();
-		}
+		await searchPage.toggleFilters();
+		await expect(searchPage.filtersPanel).toBeVisible();
 
 		// More versions toggle should be visible
 		await expect(searchPage.moreVersionsToggle).toBeVisible();

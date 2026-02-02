@@ -89,7 +89,7 @@ export function doSearch(
   // Build sort_by based on sort selection and search term
   let sortBy: string;
   if (sort === '_text_match:desc') {
-    // Pure relevance sort - user explicitly selected "By Relevance"
+    // Pure relevance sort - no secondary sort to avoid overriding weighted field scores
     sortBy = '_text_match:desc';
   } else if (term && term !== '*') {
     // Search term active - prepend relevance to maintain match quality
@@ -99,13 +99,17 @@ export function doSearch(
     sortBy = `${sort},upload_timestamp:desc`;
   }
 
-  const query_by = "name,title,keywords,first_chapter,main_content,changelog";
-  const query_by_weights = "80,80,60,40,30,1";
+  const query_by = "name,title,summary,keywords,first_chapter,main_content,changelog";
+  const query_by_weights = "127,127,90,90,75,30,1";
   let searchRequests = {
     'searches': [
       {
         'query_by': query_by,
         'query_by_weights': query_by_weights,
+        'text_match_type': 'max_weight',
+        'prioritize_exact_match': true,
+        'prioritize_token_position': true,
+        'prioritize_num_matching_fields': false,
         'sort_by': sortBy,
         'facet_by': 'framework_versions,python_versions',
         'filter_by': filterString
@@ -116,6 +120,10 @@ export function doSearch(
     let facetSearch = {
       'query_by': query_by,
       'query_by_weights': query_by_weights,
+      'text_match_type': 'max_weight',
+      'prioritize_exact_match': true,
+      'prioritize_token_position': true,
+      'prioritize_num_matching_fields': false,
       'facet_by': 'framework_versions,python_versions',
       'filter_by': baseFilterString
     }

@@ -1,12 +1,23 @@
-import { test, expect } from './fixtures';
+import { test, expect, SearchPage, type Page, type Browser } from './fixtures';
 
 test.describe('Version Display', () => {
-	test('displays Plone versions sorted newest first', async ({ searchPage }) => {
+	test.describe.configure({ mode: 'serial' });
+
+	let page: Page;
+	let searchPage: SearchPage;
+
+	test.beforeAll(async ({ browser }: { browser: Browser }) => {
+		page = await browser.newPage();
+		searchPage = new SearchPage(page);
 		await searchPage.goto();
-
-		// Wait for packages to load
 		await expect(searchPage.packageCards.first()).toBeVisible();
+	});
 
+	test.afterAll(async () => {
+		await page.close();
+	});
+
+	test('displays Plone versions sorted newest first', async () => {
 		// Get the versions from the first package's title attribute
 		const versionTitle = await searchPage.getFirstPackageVersionTitle();
 		expect(versionTitle).not.toBeNull();
@@ -17,10 +28,7 @@ test.describe('Version Display', () => {
 		expect(versions).toEqual(sortedVersions);
 	});
 
-	test('constrains version list with fade effect', async ({ searchPage }) => {
-		await searchPage.goto();
-		await expect(searchPage.packageCards.first()).toBeVisible();
-
+	test('constrains version list with fade effect', async () => {
 		// Check that the version list has mask-image CSS property
 		const versionList = searchPage.page.locator('.package-card__plone-versions ul').first();
 		const maskImage = await versionList.evaluate((el) => {
@@ -32,10 +40,7 @@ test.describe('Version Display', () => {
 		expect(maskImage).toContain('linear-gradient');
 	});
 
-	test('shows full version list in tooltip on hover', async ({ searchPage }) => {
-		await searchPage.goto();
-		await expect(searchPage.packageCards.first()).toBeVisible();
-
+	test('shows full version list in tooltip on hover', async () => {
 		// Find a package that has Plone versions (title attribute with content)
 		const versionListWithTitle = searchPage.page.locator(
 			'.package-card__plone-versions ul[title]:not([title=""])'
@@ -51,10 +56,7 @@ test.describe('Version Display', () => {
 		expect(titleAttr).toMatch(/\d+\.\d+/);
 	});
 
-	test('displays monthly downloads compactly', async ({ searchPage }) => {
-		await searchPage.goto();
-		await expect(searchPage.packageCards.first()).toBeVisible();
-
+	test('displays monthly downloads compactly', async () => {
 		// Wait a bit for all data to load
 		await searchPage.page.waitForTimeout(500);
 

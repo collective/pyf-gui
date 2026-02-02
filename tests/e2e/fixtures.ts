@@ -141,6 +141,20 @@ export class SearchPage {
 	getCurrentUrl(): string {
 		return this.page.url();
 	}
+
+	async clearLocalStorageKey(key: string) {
+		await this.page.evaluate((k) => localStorage.removeItem(k), key);
+	}
+
+	async clearSearchInput() {
+		await this.searchInput.clear();
+		await this.page.waitForTimeout(400);
+	}
+
+	async resetPageState() {
+		await this.page.evaluate(() => localStorage.clear());
+		await this.goto();
+	}
 }
 
 /**
@@ -153,4 +167,4 @@ export const test = base.extend<{ searchPage: SearchPage }>({
 	}
 });
 
-export { expect } from '@playwright/test';
+export { expect, type Page, type Browser } from '@playwright/test';

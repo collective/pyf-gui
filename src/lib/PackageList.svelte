@@ -21,17 +21,21 @@
   );
 
   // Fallback to default sort if relevance becomes unavailable (search cleared)
+  // Note: Auto-selection of relevance sort is handled in SearchForm.svelte to ensure
+  // it happens before the first search is triggered
   $effect(() => {
     if (!hasActiveSearch && $search_sort === relevance_sort_option.value) {
       search_sort.set(default_sort);
-      saveSortSetting(default_sort);
     }
   });
 
   function handleSortChange(event: Event) {
     const target = event.target as HTMLSelectElement;
     search_sort.set(target.value);
-    saveSortSetting(target.value);
+    // Only save non-relevance sorts to localStorage
+    if (target.value !== relevance_sort_option.value) {
+      saveSortSetting(target.value);
+    }
   }
 
   let sentinelElement: HTMLElement | null = $state(null);

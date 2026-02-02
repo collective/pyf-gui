@@ -15,8 +15,8 @@ export default defineConfig({
 		headless: !isPresenterMode,
 		viewport: isPresenterMode ? { width: 1920, height: 1080 } : undefined,
 		launchOptions: {
-			slowMo: isPresenterMode ? 1000 : 0,
-			args: isPresenterMode ? ['--window-size=1920,1080'] : []
+			slowMo: isPresenterMode ? 2200 : 0,
+			args: isPresenterMode ? ['--window-size=1920,1080', '--start-maximized'] : []
 		}
 	},
 	projects: [

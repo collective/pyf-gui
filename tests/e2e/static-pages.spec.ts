@@ -1,7 +1,19 @@
-import { test, expect } from './fixtures';
+import { test, expect, type Page, type Browser } from './fixtures';
 
 test.describe('Static Pages', () => {
-	test('loads about page', async ({ page }) => {
+	test.describe.configure({ mode: 'serial' });
+
+	let page: Page;
+
+	test.beforeAll(async ({ browser }: { browser: Browser }) => {
+		page = await browser.newPage();
+	});
+
+	test.afterAll(async () => {
+		await page.close();
+	});
+
+	test('loads about page', async () => {
 		await page.goto('/about');
 
 		// Check for about page content
@@ -9,7 +21,7 @@ test.describe('Static Pages', () => {
 		await expect(heading).toBeVisible();
 	});
 
-	test('loads help page', async ({ page }) => {
+	test('loads help page', async () => {
 		await page.goto('/help');
 
 		// Check for help page content
@@ -17,7 +29,7 @@ test.describe('Static Pages', () => {
 		await expect(heading).toBeVisible();
 	});
 
-	test('navigates between pages via header links', async ({ page }) => {
+	test('navigates between pages via header links', async () => {
 		// Start at home
 		await page.goto('/');
 		await page.waitForLoadState('networkidle');
