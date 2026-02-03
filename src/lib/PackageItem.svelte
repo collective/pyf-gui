@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { formatNumber, getPackageType, getPloneVersions, getPythonVersions, toLocalizedTime } from '$lib/utils';
+  import { formatNumber, getHealthScoreColor, getPackageType, getPloneVersions, getPythonVersions, toLocalizedTime } from '$lib/utils';
 
   let { item } = $props<{ item: any }>();
 
@@ -19,7 +19,15 @@
   <div class="package-card__left">
     <div class="package-card__info">
       <div class="package-card__title">
-        <h2><a href="/project/{item.name}">{item.name}</a></h2>
+        <h2>
+          <a href="/project/{item.name}">{item.name}</a>
+          {#if item.health_score !== undefined}
+            {@const colors = getHealthScoreColor(item.health_score)}
+            <span class="health-score-badge" style="background-color: {colors.bg}; color: {colors.text};" title="Health Score">
+              {item.health_score}
+            </span>
+          {/if}
+        </h2>
         <span class="package-card__title-meta">{item.version} - {toLocalizedDate(item.upload_timestamp)}</span>
       </div>
       <p class="package-card__summary">{item.summary}</p>
@@ -148,9 +156,24 @@
       margin-bottom: var(--spacing-sm, 0.5em);
 
       h2 {
-        display: block;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.5em;
         margin-bottom: 0;
       }
+    }
+
+    .health-score-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65em;
+      font-weight: var(--font-weight-semibold, 600);
+      padding: 0.15em 0.5em;
+      border-radius: 0.25em;
+      line-height: 1.2;
+      vertical-align: middle;
     }
 
     &__title-meta {

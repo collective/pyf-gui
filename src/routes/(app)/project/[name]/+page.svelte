@@ -4,7 +4,10 @@
     compactPloneVersions,
     compactPythonVersions,
     formatNumber,
+    getHealthScoreColor,
+    getHealthScoreLabel,
     getPackageType,
+    HEALTH_SCORE_CATEGORIES,
     processProjectUrls,
     toLocalizedTime,
   } from "$lib/utils";
@@ -120,6 +123,51 @@
       {/if}
     </div>
   </div>
+  {#if data.hit.health_score !== undefined}
+  {@const overallColors = getHealthScoreColor(data.hit.health_score)}
+  <div class="health-score">
+    <div class="sidebar-label">Health Score</div>
+    <div class="health-score_content">
+      <div class="health-score_overall">
+        <div class="health-score_indicator" style="background-color: {overallColors.bg}; color: {overallColors.text};">
+          {data.hit.health_score}
+        </div>
+        <span class="health-score_label">{getHealthScoreLabel(data.hit.health_score)}</span>
+      </div>
+      {#if data.hit.health_score_breakdown}
+      <div class="health-score_breakdown">
+        {#if data.hit.health_score_breakdown.documentation !== undefined}
+          {@const catColors = getHealthScoreColor(data.hit.health_score_breakdown.documentation)}
+          <div class="health-score_category" title={HEALTH_SCORE_CATEGORIES.documentation.description}>
+            <span class="health-score_category-label">{HEALTH_SCORE_CATEGORIES.documentation.label}</span>
+            <span class="health-score_category-value" style="background-color: {catColors.bg}; color: {catColors.text};">
+              {data.hit.health_score_breakdown.documentation}
+            </span>
+          </div>
+        {/if}
+        {#if data.hit.health_score_breakdown.metadata !== undefined}
+          {@const catColors = getHealthScoreColor(data.hit.health_score_breakdown.metadata)}
+          <div class="health-score_category" title={HEALTH_SCORE_CATEGORIES.metadata.description}>
+            <span class="health-score_category-label">{HEALTH_SCORE_CATEGORIES.metadata.label}</span>
+            <span class="health-score_category-value" style="background-color: {catColors.bg}; color: {catColors.text};">
+              {data.hit.health_score_breakdown.metadata}
+            </span>
+          </div>
+        {/if}
+        {#if data.hit.health_score_breakdown.recency !== undefined}
+          {@const catColors = getHealthScoreColor(data.hit.health_score_breakdown.recency)}
+          <div class="health-score_category" title={HEALTH_SCORE_CATEGORIES.recency.description}>
+            <span class="health-score_category-label">{HEALTH_SCORE_CATEGORIES.recency.label}</span>
+            <span class="health-score_category-value" style="background-color: {catColors.bg}; color: {catColors.text};">
+              {data.hit.health_score_breakdown.recency}
+            </span>
+          </div>
+        {/if}
+      </div>
+      {/if}
+    </div>
+  </div>
+  {/if}
   {#if data.hit.download_total != undefined || data.hit.download_last_month != undefined}
   <div class="downloads">
     <div class="sidebar-label">PyPI Downloads</div>
@@ -620,6 +668,77 @@
           align-self: center;
         }
       }
+    }
+  }
+
+  /* Health Score section with teal background */
+  .health-score {
+    padding: var(--box-padding);
+    padding-bottom: var(--section-padding);
+    margin-bottom: var(--section-margin);
+    border-bottom: var(--section-border);
+    background-color: #e8f4f4;
+    color: var(--color-text, #464646);
+    font-size: var(--font-size-sm, 0.8rem);
+
+    .health-score_content {
+      padding: var(--spacing-quarter, 7.5px) 0;
+    }
+
+    .health-score_overall {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-half, 15px);
+      padding: var(--spacing-quarter, 7.5px);
+    }
+
+    .health-score_indicator {
+      width: 3em;
+      height: 3em;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-size-lg, 1.1rem);
+      font-weight: var(--font-weight-bold, 600);
+      flex-shrink: 0;
+    }
+
+    .health-score_label {
+      font-size: var(--font-size-base, 1rem);
+      font-weight: var(--font-weight-semibold, 500);
+    }
+
+    .health-score_breakdown {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-quarter, 7.5px);
+      padding: var(--spacing-quarter, 7.5px);
+      margin-top: var(--spacing-quarter, 7.5px);
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    .health-score_category {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-quarter, 7.5px) 0;
+      cursor: help;
+    }
+
+    .health-score_category-label {
+      font-size: var(--font-size-sm, 0.8rem);
+    }
+
+    .health-score_category-value {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-size-sm, 0.8rem);
+      font-weight: var(--font-weight-semibold, 600);
+      padding: 0.15em 0.5em;
+      border-radius: 0.25em;
+      min-width: 2em;
     }
   }
 

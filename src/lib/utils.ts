@@ -180,6 +180,51 @@ export interface ProcessedProjectUrl {
  * Process project URLs from PyPI metadata
  * Maps labels to canonical types and adds appropriate icons
  */
+/**
+ * Get color for health score based on value ranges
+ * Returns background color and appropriate text color for contrast
+ */
+export function getHealthScoreColor(score: number): { bg: string; text: string } {
+    if (score >= 70) {
+        return { bg: '#28a745', text: '#fff' }; // Green
+    } else if (score >= 40) {
+        return { bg: '#ffc107', text: '#212529' }; // Yellow/Orange
+    } else {
+        return { bg: '#dc3545', text: '#fff' }; // Red
+    }
+}
+
+/**
+ * Get label for health score
+ */
+export function getHealthScoreLabel(score: number): string {
+    if (score >= 70) {
+        return 'Good';
+    } else if (score >= 40) {
+        return 'Fair';
+    } else {
+        return 'Needs Improvement';
+    }
+}
+
+/**
+ * Health score breakdown categories with labels and descriptions
+ */
+export const HEALTH_SCORE_CATEGORIES = {
+    documentation: {
+        label: 'Documentation',
+        description: 'Quality and completeness of documentation (README, docstrings, etc.)',
+    },
+    metadata: {
+        label: 'Metadata',
+        description: 'Package metadata completeness (classifiers, keywords, URLs, etc.)',
+    },
+    recency: {
+        label: 'Recency',
+        description: 'How recently the package was updated and maintained',
+    },
+} as const;
+
 export function processProjectUrls(projectUrls: Record<string, string>): ProcessedProjectUrl[] {
     const processed: ProcessedProjectUrl[] = [];
 
