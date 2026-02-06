@@ -17,10 +17,32 @@ test.describe('Search input consistency', () => {
 	});
 
 	/**
-	 * Wait for search results to be fully rendered after the URL reflects the search term.
+	 * Wait for search results to appear after typing.
+	 *
+	 * Due to the is_loading guard in doSearch(), intermediate debounce-fired
+	 * searches can block the final search. To handle this robustly:
+	 * 1. Wait for the input to contain the expected term
+	 * 2. Wait for debounce (300ms) + buffer
+	 * 3. Wait for the URL to reflect the search term (with retries)
+	 * 4. Wait for results to render
 	 */
 	async function waitForSearchResults(term: string) {
-		await page.waitForURL(`**/*q=${encodeURIComponent(term)}*`, { timeout: 10000 });
+		// 1. Ensure the input field has the correct value
+		await expect(searchPage.searchInput).toHaveValue(term, { timeout: 5000 });
+
+		// 2. Wait for debounce to fire and URL to update.
+		//    The is_loading guard may cause the first debounce to be dropped,
+		//    so we poll for the URL to contain the term.
+		await page.waitForFunction(
+			(expectedTerm) => {
+				const url = new URL(window.location.href);
+				return url.searchParams.get('q') === expectedTerm;
+			},
+			term,
+			{ timeout: 15000, polling: 200 }
+		);
+
+		// 3. Wait for network to settle and results to render
 		await page.waitForLoadState('networkidle');
 		await searchPage.packageCards.first().waitFor({ timeout: 10000 });
 	}
@@ -46,24 +68,31 @@ test.describe('Search input consistency', () => {
 		// Reload from that URL to verify the search term was correctly captured.
 		const methods = [
 			{
-				name: 'fast type',
+				name: 'fast type (pressSequentially delay=0)',
 				action: async () => {
 					await searchPage.resetPageState();
 					await searchPage.typeFast('plone');
 				}
 			},
 			{
-				name: 'slow type',
+				name: 'slow type (pressSequentially delay=50ms)',
 				action: async () => {
 					await searchPage.resetPageState();
 					await searchPage.typeSlowly('plone', 50);
 				}
 			},
 			{
-				name: 'paste',
+				name: 'paste (fill)',
 				action: async () => {
 					await searchPage.resetPageState();
 					await searchPage.search('plone');
+				}
+			},
+			{
+				name: 'instant (fill + input event)',
+				action: async () => {
+					await searchPage.resetPageState();
+					await searchPage.typeInstant('plone');
 				}
 			}
 		];
@@ -97,24 +126,31 @@ test.describe('Search input consistency', () => {
 
 		const methods = [
 			{
-				name: 'fast type',
+				name: 'fast type (pressSequentially delay=0)',
 				action: async () => {
 					await searchPage.resetPageState();
 					await searchPage.typeFast('plone');
 				}
 			},
 			{
-				name: 'slow type',
+				name: 'slow type (pressSequentially delay=50ms)',
 				action: async () => {
 					await searchPage.resetPageState();
 					await searchPage.typeSlowly('plone', 50);
 				}
 			},
 			{
-				name: 'paste',
+				name: 'paste (fill)',
 				action: async () => {
 					await searchPage.resetPageState();
 					await searchPage.search('plone');
+				}
+			},
+			{
+				name: 'instant (fill + input event)',
+				action: async () => {
+					await searchPage.resetPageState();
+					await searchPage.typeInstant('plone');
 				}
 			}
 		];

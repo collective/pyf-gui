@@ -1,15 +1,13 @@
 <script lang="ts">
   import { browser } from "$app/environment";
-  import { goto } from "$app/navigation";
-  import { page } from "$app/stores";
-  import type { Filter } from "$lib/interfaces";
+  import { goto, afterNavigate } from "$app/navigation";
   import { loadFilterSettings, loadSortSetting, saveFilterSettings, loadLanguageSetting, saveLanguageSetting } from "$lib/localStorage";
   import { pageState } from "$lib/page-state.svelte";
-  import { plone_versions, search_filter, search_sort, search_term, sort_initialized, search_language, user_selected_sort } from "$lib/stores";
+  import { searchState, getFilter, registerSearchInputHandler } from "$lib/search-state.svelte";
   import { buildUrlString, serializeToUrl, type UrlSearchState } from "$lib/urlParams";
   import { onMount } from "svelte";
   import { doSearch, resetPagination, fetchInitialFacets } from "./search";
-  import { default_package_types, default_plone_versions, default_sort, package_types, PRIMARY_PLONE_VERSION_THRESHOLD, relevance_sort_option, language_options, default_language, type Language } from "./settings";
+  import { default_package_types, default_plone_versions, default_sort, package_types, PRIMARY_PLONE_VERSION_THRESHOLD, relevance_sort_option, language_options } from "./settings";
 
   // Props from load function
   interface Props {
@@ -18,70 +16,23 @@
   }
   let { urlParams, urlHasParams }: Props = $props();
 
-  let term = $state("");
   let showPloneVersionsFilter = $state(true);
-  let pVersions = $state<string[]>([...default_plone_versions]);
-  let pTypes = $state<string[]>([...default_package_types]);
-  let selectedLanguage = $state<Language>(default_language);
-  let isInitialized = $state(false);
 
   // Derived: show Python-specific filters only when Python is selected
-  let showPythonFilters = $derived(selectedLanguage === 'python');
-
-  // Flag to prevent circular URL updates
-  let isUrlUpdate = $state(false);
+  let showPythonFilters = $derived(searchState.language === 'python');
 
   // Debounce timer for search term
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Track whether the previous search term was active (for auto-relevance selection)
-  let lastSearchTermWasActive = $state(false);
-
-  // Track search state for the search effect (separate from auto-sort tracking)
-  let lastSearchHadActiveTerm = $state(false);
-
-  // Track the previous URL to detect actual browser navigation
-  let previousUrl = $state<string | null>(null);
+  let lastSearchTermWasActive = false;
 
   // Track if we initialized from URL params (to prevent auto-relevance override)
-  let initializedFromUrl = $state(false);
+  let initializedFromUrl = false;
 
   // Progressive disclosure states
   let showOlderVersions = $state(false);
   let showMoreTypes = $state(false);
-
-  // Track last synced values for two-way sync
-  let lastSyncedTerm = '';
-  let lastSyncedPageState = '';
-
-  // Two-way sync with pageState for mobile header search
-  // Uses tracking to determine which source changed and sync appropriately
-  $effect(() => {
-    const currentTerm = term;
-    const currentPageState = pageState.searchTerm;
-
-    // Determine what changed
-    const termChanged = currentTerm !== lastSyncedTerm;
-    const pageStateChanged = currentPageState !== lastSyncedPageState;
-
-    if (termChanged && !pageStateChanged) {
-      // Desktop input changed - sync to pageState
-      pageState.searchTerm = currentTerm;
-      lastSyncedPageState = currentTerm;
-      lastSyncedTerm = currentTerm;
-    } else if (pageStateChanged && !termChanged) {
-      // Mobile input changed - sync to term
-      term = currentPageState;
-      lastSyncedTerm = currentPageState;
-      lastSyncedPageState = currentPageState;
-    } else if (termChanged && pageStateChanged) {
-      // Both changed - prefer term (desktop input has priority since SearchForm owns it)
-      pageState.searchTerm = currentTerm;
-      lastSyncedPageState = currentTerm;
-      lastSyncedTerm = currentTerm;
-    }
-    // If neither changed, do nothing
-  });
 
   // Derived: split package types into primary and secondary
   let primaryTypes = $derived(package_types.filter(t => t.primary));
@@ -98,7 +49,7 @@
 
   // Derived: split Plone versions into primary (>= 5.2) and older (< 5.2)
   let primaryVersions = $derived(
-    $plone_versions.filter(v => {
+    searchState.ploneVersionsAvailable.filter(v => {
       if (!v.value.startsWith("Plone")) return false;
       const vNum = getVersionNumber(v.value);
       return vNum >= parseFloat(PRIMARY_PLONE_VERSION_THRESHOLD);
@@ -106,114 +57,115 @@
   );
 
   let olderVersions = $derived(
-    $plone_versions.filter(v => {
+    searchState.ploneVersionsAvailable.filter(v => {
       if (!v.value.startsWith("Plone")) return false;
       const vNum = getVersionNumber(v.value);
       return vNum < parseFloat(PRIMARY_PLONE_VERSION_THRESHOLD);
     })
   );
 
-  // Initialize state: URL params > localStorage > defaults
-  onMount(async () => {
-    // Load language first (affects which facets to fetch)
-    if (urlHasParams && urlParams.language) {
-      selectedLanguage = urlParams.language;
-    } else {
-      selectedLanguage = loadLanguageSetting();
+  // Update URL when state changes
+  function updateUrl() {
+    if (!browser || !searchState.initialized) return;
+
+    const state: UrlSearchState = {
+      searchTerm: searchState.term || '*',
+      ploneVersions: searchState.ploneVersions,
+      packageTypes: searchState.packageTypes,
+      sort: searchState.sort,
+      language: searchState.language,
+      hasExplicitSort: true
+    };
+
+    const params = serializeToUrl(state);
+    const urlString = buildUrlString(params);
+    const targetUrl = urlString || '/';
+
+    // Don't navigate if URL hasn't changed
+    const currentPath = window.location.pathname + window.location.search;
+    const normalizedTarget = targetUrl.startsWith('?') ? '/' + targetUrl : targetUrl;
+    if (normalizedTarget === currentPath) return;
+
+    goto(targetUrl, { keepFocus: true, noScroll: true });
+  }
+
+  // Central search trigger
+  function triggerSearch() {
+    resetPagination();
+    doSearch(searchState.term, getFilter(), 1, false, searchState.sort, searchState.language);
+  }
+
+  // Input handler with debounce + auto-relevance
+  function handleSearchInput() {
+    // Sync to pageState for mobile header search
+    pageState.searchTerm = searchState.term;
+
+    const isActive = searchState.term !== '' && searchState.term !== '*';
+
+    // Auto-select relevance sort when first typing a search term
+    if (isActive && !lastSearchTermWasActive && !initializedFromUrl && !searchState.userSelectedSort) {
+      searchState.sort = relevance_sort_option.value;
     }
-    search_language.set(selectedLanguage);
-
-    // Fetch all available versions immediately for filter display (only for Python)
-    await fetchInitialFacets(selectedLanguage);
-
-    if (urlHasParams) {
-      // URL params take priority
-      const searchTermFromUrl = urlParams.searchTerm === '*' ? '' : urlParams.searchTerm;
-      term = searchTermFromUrl;
-      // Also update pageState to prevent the sync effect from overwriting
-      pageState.searchTerm = searchTermFromUrl;
-      pVersions = urlParams.ploneVersions;
-      pTypes = urlParams.packageTypes;
-      // Set sort from URL if present
-      // Validate: relevance sort requires active search term
-      const hasActiveSearchTerm = searchTermFromUrl !== '' && searchTermFromUrl !== '*';
-      const isRelevanceSort = urlParams.sort === relevance_sort_option.value;
-      // Only set initializedFromUrl if URL has an explicit sort param
-      // This prevents auto-relevance from overriding an explicit URL sort preference
-      if (urlParams.hasExplicitSort) {
-        initializedFromUrl = true;
-        // Mark that we loaded with a search term only when there's also an explicit sort
-        // This prevents auto-relevance override for URLs like ?q=plone&sort=upload_timestamp:desc
-        if (hasActiveSearchTerm) {
-          lastSearchHadActiveTerm = true;
-          lastSearchTermWasActive = true;
-        }
+    // Clear initializedFromUrl flag after first input processing
+    if (initializedFromUrl) {
+      initializedFromUrl = false;
+    }
+    // Reset user_selected_sort when search is cleared
+    if (!isActive && lastSearchTermWasActive) {
+      searchState.userSelectedSort = false;
+      // Reset relevance sort when search is cleared
+      if (searchState.sort === relevance_sort_option.value) {
+        searchState.sort = default_sort;
       }
-      if (isRelevanceSort && !hasActiveSearchTerm) {
-        // Relevance sort without search term - fall back to default
-        const savedSort = loadSortSetting();
-        search_sort.set(savedSort);
-      } else if (urlParams.sort !== default_sort) {
-        search_sort.set(urlParams.sort);
-      } else {
-        const savedSort = loadSortSetting();
-        search_sort.set(savedSort);
-      }
-    } else {
-      // Fall back to localStorage
-      const savedSettings = loadFilterSettings();
-      pVersions = savedSettings.ploneVersions;
-      pTypes = savedSettings.packageTypes;
-      const savedSort = loadSortSetting();
-      search_sort.set(savedSort);
     }
-    sort_initialized.set(true);
-    isInitialized = true;
-  });
+    lastSearchTermWasActive = isActive;
 
-  // Handle browser back/forward navigation
-  // Only reacts when the actual URL changes (not when local state changes)
-  $effect(() => {
-    if (!browser || !isInitialized) return;
-    // Don't run during programmatic URL updates
-    if (isUrlUpdate) return;
-
-    const currentUrl = $page.url;
-    const currentUrlString = currentUrl.toString();
-
-    // Skip if this is the first run or URL hasn't changed
-    if (previousUrl === null) {
-      previousUrl = currentUrlString;
-      return;
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
     }
 
-    // Only process if URL actually changed (browser navigation)
-    if (previousUrl === currentUrlString) return;
+    debounceTimer = setTimeout(() => {
+      updateUrl();
+      triggerSearch();
+    }, 300);
+  }
 
-    // URL has changed - update previousUrl and sync state from URL
-    previousUrl = currentUrlString;
-    isUrlUpdate = true;
+  // Filter change handler (Plone versions, package types)
+  function handleFilterChange() {
+    saveFilterSettings(searchState.ploneVersions, searchState.packageTypes);
+    updateUrl();
+    triggerSearch();
+  }
 
-    const urlQ = currentUrl.searchParams.get('q');
-    const urlVersion = currentUrl.searchParams.get('version');
-    const urlType = currentUrl.searchParams.get('type');
-    const urlSort = currentUrl.searchParams.get('sort');
-    const urlLang = currentUrl.searchParams.get('lang');
+  // Language change handler
+  function handleLanguageChange() {
+    saveLanguageSetting(searchState.language);
+    // Refetch facets when language changes
+    fetchInitialFacets(searchState.language);
+    updateUrl();
+    triggerSearch();
+  }
+
+  // Sync state from URL params (used for browser back/forward)
+  function syncStateFromUrl(url: URL) {
+    const urlQ = url.searchParams.get('q');
+    const urlVersion = url.searchParams.get('version');
+    const urlType = url.searchParams.get('type');
+    const urlSort = url.searchParams.get('sort');
+    const urlLang = url.searchParams.get('lang');
 
     // Update language from URL
-    selectedLanguage = urlLang === 'js' ? 'javascript' : 'python';
-    search_language.set(selectedLanguage);
+    searchState.language = urlLang === 'js' ? 'javascript' : 'python';
 
-    // Update local state from URL
+    // Update search term
     const newTerm = urlQ || '';
-    term = newTerm;
-    // Also update pageState to keep mobile search in sync
+    searchState.term = newTerm;
     pageState.searchTerm = newTerm;
 
     if (urlVersion !== null) {
-      pVersions = urlVersion.split(',').map(v => `Plone ${v.trim()}`);
+      searchState.ploneVersions = urlVersion.split(',').map(v => `Plone ${v.trim()}`);
     } else {
-      pVersions = [...default_plone_versions];
+      searchState.ploneVersions = [...default_plone_versions];
     }
 
     if (urlType !== null) {
@@ -223,179 +175,100 @@
         'core': 'Framework :: Plone :: Core',
         'distribution': 'Framework :: Plone :: Distribution'
       };
-      pTypes = urlType.split(',').map(code => CODE_TO_TYPE[code.trim()]).filter(Boolean);
+      searchState.packageTypes = urlType.split(',').map(code => CODE_TO_TYPE[code.trim()]).filter(Boolean);
     } else {
-      pTypes = [...default_package_types];
+      searchState.packageTypes = [...default_package_types];
     }
 
     // Validate: relevance sort requires active search term
-    const hasActiveSearchTerm = newTerm !== '' && newTerm !== '*';
+    const hasActiveTerm = newTerm !== '' && newTerm !== '*';
     const isRelevanceSort = urlSort === relevance_sort_option.value;
-    if (urlSort !== null && !(isRelevanceSort && !hasActiveSearchTerm)) {
-      search_sort.set(urlSort);
-    } else if (isRelevanceSort && !hasActiveSearchTerm) {
-      // Relevance sort without search term - fall back to default
-      search_sort.set(default_sort);
+    if (urlSort !== null && !(isRelevanceSort && !hasActiveTerm)) {
+      searchState.sort = urlSort;
+    } else if (isRelevanceSort && !hasActiveTerm) {
+      searchState.sort = default_sort;
     } else {
-      // No sort in URL - load from localStorage
       const savedSort = loadSortSetting();
-      // Validate: if saved sort is relevance without search term, use default
-      if (savedSort === relevance_sort_option.value && !hasActiveSearchTerm) {
-        search_sort.set(default_sort);
+      if (savedSort === relevance_sort_option.value && !hasActiveTerm) {
+        searchState.sort = default_sort;
       } else {
-        search_sort.set(savedSort);
+        searchState.sort = savedSort;
       }
     }
 
-    // Reset flag after a tick
-    setTimeout(() => { isUrlUpdate = false; }, 0);
-  });
-
-  // Update URL when state changes
-  function updateUrl() {
-    if (!browser || !isInitialized || isUrlUpdate) return;
-
-    const state: UrlSearchState = {
-      searchTerm: term || '*',
-      ploneVersions: pVersions,
-      packageTypes: pTypes,
-      sort: $search_sort,
-      language: selectedLanguage,
-      hasExplicitSort: true  // User is explicitly setting values via UI
-    };
-
-    const params = serializeToUrl(state);
-    const urlString = buildUrlString(params);
-    const targetUrl = urlString || '/';
-
-    // Don't navigate if URL hasn't changed
-    // Normalize paths for comparison (targetUrl may be just query string like ?q=foo)
-    const currentPath = window.location.pathname + window.location.search;
-    const normalizedTarget = targetUrl.startsWith('?') ? '/' + targetUrl : targetUrl;
-    if (normalizedTarget === currentPath) return;
-
-    // Set flag to prevent navigation effect from running during our URL update
-    isUrlUpdate = true;
-
-    goto(targetUrl, { keepFocus: true, noScroll: true }).then(() => {
-      // Update previousUrl after navigation completes
-      previousUrl = window.location.href;
-      // Clear the flag after a tick
-      setTimeout(() => { isUrlUpdate = false; }, 0);
-    });
+    // Update tracking state
+    lastSearchTermWasActive = hasActiveTerm;
   }
 
-  let filter = $derived<Filter>({
-    plone_versions: pVersions,
-    package_types: pTypes,
-  });
-
-  // Save filter settings when they change (after initialization)
-  $effect(() => {
-    if (isInitialized) {
-      saveFilterSettings(pVersions, pTypes);
+  // Handle browser back/forward navigation
+  afterNavigate(({ type }) => {
+    if (type === 'popstate' && searchState.initialized) {
+      syncStateFromUrl(new URL(window.location.href));
+      triggerSearch();
     }
   });
 
-  // Save language setting and update store when language changes
-  $effect(() => {
-    if (isInitialized) {
-      const lang = selectedLanguage;
-      saveLanguageSetting(lang);
-      search_language.set(lang);
-    }
-  });
+  // Register handler for mobile search input sync
+  registerSearchInputHandler(handleSearchInput);
 
-  // Track filter changes and update URL (immediate)
-  $effect(() => {
-    if (isInitialized && !isUrlUpdate) {
-      // Track filter dependencies
-      const _versions = pVersions;
-      const _types = pTypes;
-      const _sort = $search_sort;
-      const _lang = selectedLanguage;
-      updateUrl();
-    }
-  });
-
-  // Track search term changes with debounce
-  // Auto-select relevance sort BEFORE debounce fires to ensure first search uses correct sort
-  $effect(() => {
-    if (!isInitialized) return;
-
-    const _term = term; // Track dependency
-    const hasActiveSearch = _term !== '' && _term !== '*';
-    const wasSearchActive = lastSearchTermWasActive;
-
-    // Auto-select relevance sort ONLY if:
-    // - Not initialized from URL (URL sort takes priority)
-    // - User hasn't explicitly selected a sort
-    if (hasActiveSearch && !wasSearchActive && !initializedFromUrl && !$user_selected_sort) {
-      search_sort.set(relevance_sort_option.value);
-    }
-    // Clear URL flag after first processing
-    if (initializedFromUrl) {
-      initializedFromUrl = false;
-    }
-    // Reset user_selected_sort when search is cleared
-    if (!hasActiveSearch && wasSearchActive) {
-      user_selected_sort.set(false);
-    }
-    lastSearchTermWasActive = hasActiveSearch;
-
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
+  // Initialize state: URL params > localStorage > defaults
+  onMount(async () => {
+    // Load language first (affects which facets to fetch)
+    if (urlHasParams && urlParams.language) {
+      searchState.language = urlParams.language;
+    } else {
+      searchState.language = loadLanguageSetting();
     }
 
-    debounceTimer = setTimeout(() => {
-      if (!isUrlUpdate) {
-        updateUrl();
+    // Fetch all available versions immediately for filter display (only for Python)
+    await fetchInitialFacets(searchState.language);
+
+    if (urlHasParams) {
+      // URL params take priority
+      const searchTermFromUrl = urlParams.searchTerm === '*' ? '' : urlParams.searchTerm;
+      searchState.term = searchTermFromUrl;
+      pageState.searchTerm = searchTermFromUrl;
+      searchState.ploneVersions = urlParams.ploneVersions;
+      searchState.packageTypes = urlParams.packageTypes;
+
+      const hasActiveSearchTerm = searchTermFromUrl !== '' && searchTermFromUrl !== '*';
+      const isRelevanceSort = urlParams.sort === relevance_sort_option.value;
+
+      if (urlParams.hasExplicitSort) {
+        initializedFromUrl = true;
+        if (hasActiveSearchTerm) {
+          lastSearchTermWasActive = true;
+        }
       }
-    }, 300);
 
-    return () => {
-      if (debounceTimer) {
-        clearTimeout(debounceTimer);
+      if (isRelevanceSort && !hasActiveSearchTerm) {
+        const savedSort = loadSortSetting();
+        searchState.sort = savedSort;
+      } else if (urlParams.sort !== default_sort) {
+        searchState.sort = urlParams.sort;
+      } else {
+        const savedSort = loadSortSetting();
+        searchState.sort = savedSort;
       }
-    };
-  });
-
-  // Track sort changes reactively using store subscription
-  $effect(() => {
-    // Wait for sort to be initialized before searching
-    if (!$sort_initialized) {
-      return;
+    } else {
+      // Fall back to localStorage
+      const savedSettings = loadFilterSettings();
+      searchState.ploneVersions = savedSettings.ploneVersions;
+      searchState.packageTypes = savedSettings.packageTypes;
+      const savedSort = loadSortSetting();
+      searchState.sort = savedSort;
     }
 
-    // Update stores for other components to access
-    search_term.set(term);
-    search_filter.set(filter);
+    searchState.sortInitialized = true;
+    searchState.initialized = true;
 
-    const hasActiveSearch = term !== '' && term !== '*';
-    const storeSort = $search_sort;
-    const currentLang = selectedLanguage;
-
-    // Compute effective sort - handles race condition where
-    // the auto-sort effect hasn't updated the store yet
-    let effectiveSort = storeSort;
-    if (hasActiveSearch && storeSort !== relevance_sort_option.value) {
-      // First search with active term should use relevance
-      // BUT respect URL params and user selections
-      if (!lastSearchHadActiveTerm && !initializedFromUrl && !$user_selected_sort) {
-        effectiveSort = relevance_sort_option.value;
-      }
-    }
-    lastSearchHadActiveTerm = hasActiveSearch;
-
-    // Reset pagination and perform new search
-    resetPagination();
-    doSearch(term, filter, 1, false, effectiveSort, currentLang);
+    // Trigger the initial search
+    triggerSearch();
   });
 
   function handleSubmit(e: Event) {
     e.preventDefault();
-    resetPagination();
-    doSearch(term, filter, 1, false, $search_sort);
+    triggerSearch();
   }
 
   function togglePloneVersionsFilter() {
@@ -421,15 +294,16 @@
         placeholder={showPythonFilters ? "Enter add-on name" : "Enter package name"}
         spellcheck="false"
         name="text"
-        bind:value={term}
+        bind:value={searchState.term}
+        oninput={handleSearchInput}
       />
     </div>
     <div class="search-form__field search-form__field--language">
       <div class="search-form__label">Language</div>
       <div class="search-form__language-switch">
         {#each language_options as lang}
-          <label class="language-option" class:selected={selectedLanguage === lang.value}>
-            <input type="radio" name="language" value={lang.value} bind:group={selectedLanguage} />
+          <label class="language-option" class:selected={searchState.language === lang.value}>
+            <input type="radio" name="language" value={lang.value} bind:group={searchState.language} onchange={handleLanguageChange} />
             <span class="language-option__label">{lang.title}</span>
           </label>
         {/each}
@@ -460,12 +334,13 @@
           {#each primaryVersions as version (version.value)}
             <div class="form-check form-switch">
               <input
-                bind:group={pVersions}
-                checked={pVersions.includes(version.value)}
+                bind:group={searchState.ploneVersions}
+                checked={searchState.ploneVersions.includes(version.value)}
                 class="form-check-input"
                 type="checkbox"
                 id="plone_version_{version.value}"
                 value={version.value}
+                onchange={handleFilterChange}
               />
               <label class="form-check-label" for="plone_version_{version.value}">
                 {version.value.replace("Plone ", "")} ({version.count})
@@ -492,12 +367,13 @@
               {#each olderVersions as version (version.value)}
                 <div class="form-check form-switch">
                   <input
-                    bind:group={pVersions}
-                    checked={pVersions.includes(version.value)}
+                    bind:group={searchState.ploneVersions}
+                    checked={searchState.ploneVersions.includes(version.value)}
                     class="form-check-input"
                     type="checkbox"
                     id="plone_version_{version.value}"
                     value={version.value}
+                    onchange={handleFilterChange}
                   />
                   <label class="form-check-label" for="plone_version_{version.value}">
                     {version.value.replace("Plone ", "")} ({version.count})
@@ -514,12 +390,13 @@
           {#each primaryTypes as ptype (ptype.value)}
             <div class="form-check form-switch">
               <input
-                bind:group={pTypes}
-                checked={pTypes.includes(ptype.value)}
+                bind:group={searchState.packageTypes}
+                checked={searchState.packageTypes.includes(ptype.value)}
                 class="form-check-input"
                 type="checkbox"
                 id="package_type_{ptype.value}"
                 value={ptype.value}
+                onchange={handleFilterChange}
               />
               <label class="form-check-label" for="package_type_{ptype.value}">
                 {ptype.title}
@@ -546,12 +423,13 @@
               {#each secondaryTypes as ptype (ptype.value)}
                 <div class="form-check form-switch">
                   <input
-                    bind:group={pTypes}
-                    checked={pTypes.includes(ptype.value)}
+                    bind:group={searchState.packageTypes}
+                    checked={searchState.packageTypes.includes(ptype.value)}
                     class="form-check-input"
                     type="checkbox"
                     id="package_type_{ptype.value}"
                     value={ptype.value}
+                    onchange={handleFilterChange}
                   />
                   <label class="form-check-label" for="package_type_{ptype.value}">
                     {ptype.title}

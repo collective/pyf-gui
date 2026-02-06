@@ -1,42 +1,31 @@
 <script lang="ts">
   import { saveSortSetting } from "$lib/localStorage";
   import PackageItem from "$lib/PackageItem.svelte";
-  import { loadMore } from "$lib/search";
-  import { default_sort, relevance_sort_option, sort_options } from "$lib/settings";
-  import { has_more, is_loading, package_list, search_filter, search_sort, search_term, total_found, user_selected_sort } from "$lib/stores";
+  import { doSearch, loadMore, resetPagination } from "$lib/search";
+  import { searchState, getHasActiveSearch, getFilter } from "$lib/search-state.svelte";
+  import { relevance_sort_option, sort_options } from "$lib/settings";
   import { onDestroy, onMount } from "svelte";
-  import { get } from "svelte/store";
 
-  // Sync local state with store
-  let currentSort = $derived($search_sort);
-
-  // Check if there's an active search term (not empty or wildcard)
-  let hasActiveSearch = $derived($search_term !== '' && $search_term !== '*');
+  let currentSort = $derived(searchState.sort);
 
   // Build available sort options - include relevance only when searching
   let availableSortOptions = $derived(
-    hasActiveSearch
+    getHasActiveSearch()
       ? [relevance_sort_option, ...sort_options]
       : sort_options
   );
 
-  // Fallback to default sort if relevance becomes unavailable (search cleared)
-  // Note: Auto-selection of relevance sort is handled in SearchForm.svelte to ensure
-  // it happens before the first search is triggered
-  $effect(() => {
-    if (!hasActiveSearch && $search_sort === relevance_sort_option.value) {
-      search_sort.set(default_sort);
-    }
-  });
-
   function handleSortChange(event: Event) {
     const target = event.target as HTMLSelectElement;
-    user_selected_sort.set(true);  // User made explicit selection
-    search_sort.set(target.value);
+    searchState.userSelectedSort = true;
+    searchState.sort = target.value;
     // Only save non-relevance sorts to localStorage
     if (target.value !== relevance_sort_option.value) {
       saveSortSetting(target.value);
     }
+    // Trigger search with new sort
+    resetPagination();
+    doSearch(searchState.term, getFilter(), 1, false, searchState.sort, searchState.language);
   }
 
   let sentinelElement: HTMLElement | null = $state(null);
@@ -45,8 +34,8 @@
   onMount(() => {
     observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && get(has_more) && !get(is_loading)) {
-          loadMore(get(search_term), get(search_filter));
+        if (entries[0].isIntersecting && searchState.hasMore && !searchState.isLoading) {
+          loadMore(searchState.term, getFilter());
         }
       },
       { rootMargin: "200px", threshold: 0.1 }
@@ -63,7 +52,7 @@
     }
   });
 
-  // Re-observe when sentinel element changes
+  // Re-observe when sentinel element changes (DOM lifecycle, legitimate $effect use)
   $effect(() => {
     if (observer && sentinelElement) {
       observer.disconnect();
@@ -74,9 +63,9 @@
 
 <div class="results-header">
   <div class="results-header__count">
-    We found: {$total_found} Plone add-ons
-    {#if $package_list.length > 0 && $package_list.length < $total_found}
-      <span class="results-header__showing">(showing {$package_list.length} of {$total_found})</span>
+    We found: {searchState.totalFound} Plone add-ons
+    {#if searchState.packageList.length > 0 && searchState.packageList.length < searchState.totalFound}
+      <span class="results-header__showing">(showing {searchState.packageList.length} of {searchState.totalFound})</span>
     {/if}
   </div>
   <div class="results-header__sort-wrapper">
@@ -90,7 +79,7 @@
 </div>
 
 <div class="package-list">
-  {#each $package_list as item}
+  {#each searchState.packageList as item}
     {#if item.hits != undefined && item.hits.length >= 1}
       <PackageItem item={item.hits[0].document} />
     {/if}
@@ -98,13 +87,13 @@
 
   <!-- Sentinel element for infinite scroll -->
   <div bind:this={sentinelElement} class="package-list__sentinel">
-    {#if $is_loading}
+    {#if searchState.isLoading}
       <div class="package-list__loading">
         <span class="package-list__spinner"></span>
         Loading more packages...
       </div>
-    {:else if !$has_more && $package_list.length > 0}
-      <div class="package-list__all-loaded">All {$total_found} packages loaded</div>
+    {:else if !searchState.hasMore && searchState.packageList.length > 0}
+      <div class="package-list__all-loaded">All {searchState.totalFound} packages loaded</div>
     {/if}
   </div>
 </div>

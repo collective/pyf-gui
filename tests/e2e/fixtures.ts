@@ -64,6 +64,17 @@ export class SearchPage {
 	}
 
 	/**
+	 * Simulate instant paste: fill() sets value, then dispatch input event.
+	 * This is faster than pressSequentially but still triggers reactive updates.
+	 */
+	async typeInstant(term: string) {
+		await this.searchInput.click();
+		await this.searchInput.fill(term);
+		// Dispatch an input event to ensure Svelte picks up the change
+		await this.searchInput.dispatchEvent('input');
+	}
+
+	/**
 	 * Sample the search input value multiple times during a period
 	 * Returns array of values observed
 	 */

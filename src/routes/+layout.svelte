@@ -1,7 +1,13 @@
 <script>
   import { pageState } from '$lib/page-state.svelte';
+  import { searchState, notifySearchInput } from '$lib/search-state.svelte';
   import "../app.scss";
   let { children } = $props();
+
+  function handleMobileSearchInput() {
+    searchState.term = pageState.searchTerm;
+    notifySearchInput();
+  }
 </script>
 
 <header class="site-header">
@@ -40,6 +46,7 @@
           class="mobile-search-input"
           placeholder="Search add-ons"
           bind:value={pageState.searchTerm}
+          oninput={handleMobileSearchInput}
         />
         <button
           class="filter-toggle"

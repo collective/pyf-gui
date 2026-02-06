@@ -1,9 +1,8 @@
 import { PUBLIC_SEARCH_API_KEY, PUBLIC_SEARCH_COLLECTION, PUBLIC_SEARCH_HOST, PUBLIC_SEARCH_PORT, PUBLIC_SEARCH_PROTOCOL } from '$env/static/public';
 import type { Filter, VersionInfo } from '$lib/interfaces';
-import { get } from "svelte/store";
 import { Client } from "typesense";
 import { default_sort, language_options, type Language } from "./settings";
-import { current_page, has_more, is_loading, package_list, plone_versions, results_count, search_sort, search_language, total_found } from "./stores";
+import { searchState } from "./search-state.svelte";
 
 export const collectionName = PUBLIC_SEARCH_COLLECTION;
 
@@ -31,12 +30,12 @@ export function doSearch(
   language?: Language
 ) {
   // Guard against concurrent requests
-  if (get(is_loading)) {
+  if (searchState.isLoading) {
     return;
   }
 
-  // Get current language from store if not provided
-  const currentLanguage = language || get(search_language);
+  // Get current language from state if not provided
+  const currentLanguage = language || searchState.language;
   const isPython = currentLanguage === 'python';
 
   // Map language to registry value
@@ -92,7 +91,7 @@ export function doSearch(
     term = term || "*";
   }
 
-  is_loading.set(true);
+  searchState.isLoading = true;
 
   let commonSearchParams = {
     'exclude_fields': 'description',
@@ -154,7 +153,7 @@ export function doSearch(
   searchClient.multiSearch.perform(searchRequests as any, commonSearchParams).then((searchResults: any) => {
     console.log(searchResults)
     if (searchResults === undefined) {
-      is_loading.set(false);
+      searchState.isLoading = false;
       return;
     }
 
@@ -162,20 +161,17 @@ export function doSearch(
     const foundTotal = searchResults.results[0].found;
 
     if (append) {
-      // Append new results to existing list
-      package_list.update(existing => [...existing, ...newHits]);
+      searchState.packageList = [...searchState.packageList, ...newHits];
     } else {
-      // Replace results
-      package_list.set(newHits);
+      searchState.packageList = newHits;
     }
 
-    results_count.set(foundTotal);
-    total_found.set(foundTotal);
-    current_page.set(page);
+    searchState.totalFound = foundTotal;
+    searchState.currentPage = page;
 
     // Calculate if there are more results to load
-    const currentCount = append ? get(package_list).length : newHits.length;
-    has_more.set(currentCount < foundTotal);
+    const currentCount = append ? searchState.packageList.length : newHits.length;
+    searchState.hasMore = currentCount < foundTotal;
 
     // Only process facets for Python
     if (isPython) {
@@ -190,7 +186,7 @@ export function doSearch(
           facet.counts.forEach((version: VersionInfo) => {
             versions.push(version)
           })
-          plone_versions.set(versions.sort(function (a, b) {
+          searchState.ploneVersionsAvailable = versions.sort(function (a, b) {
             var nameA = a.value.toUpperCase();
             var nameB = b.value.toUpperCase();
             if (nameA > nameB) {
@@ -200,39 +196,39 @@ export function doSearch(
               return 1;
             }
             return 0;
-          }));
+          });
           console.log(versions)
         }
       });
     }
 
-    is_loading.set(false);
+    searchState.isLoading = false;
   }).catch((error: any) => {
     console.error("Search error:", error);
-    is_loading.set(false);
+    searchState.isLoading = false;
   });
 }
 
 // Helper function to load the next page
 export function loadMore(term?: string, filter?: Filter, sort?: string, language?: Language) {
-  const nextPage = get(current_page) + 1;
-  const currentSort = sort || get(search_sort);
-  const currentLanguage = language || get(search_language);
+  const nextPage = searchState.currentPage + 1;
+  const currentSort = sort || searchState.sort;
+  const currentLanguage = language || searchState.language;
   doSearch(term, filter, nextPage, true, currentSort, currentLanguage);
 }
 
 // Helper function to reset pagination state
 export function resetPagination() {
-  current_page.set(1);
-  has_more.set(true);
-  total_found.set(0);
-  package_list.set([]);
+  searchState.currentPage = 1;
+  searchState.hasMore = true;
+  searchState.totalFound = 0;
+  searchState.packageList = [];
 }
 
 // Fetch facets only (for initial page load to populate version filters)
 export async function fetchInitialFacets(language?: Language) {
   // Only fetch facets for Python packages
-  const currentLanguage = language || get(search_language);
+  const currentLanguage = language || searchState.language;
   if (currentLanguage !== 'python') {
     return;
   }
@@ -249,9 +245,9 @@ export async function fetchInitialFacets(language?: Language) {
       result.facet_counts.forEach((facet: any) => {
         if (facet.field_name === 'framework_versions') {
           const versions: VersionInfo[] = facet.counts.map((v: VersionInfo) => v);
-          plone_versions.set(versions.sort((a, b) => {
+          searchState.ploneVersionsAvailable = versions.sort((a, b) => {
             return b.value.toUpperCase().localeCompare(a.value.toUpperCase());
-          }));
+          });
         }
       });
     }
