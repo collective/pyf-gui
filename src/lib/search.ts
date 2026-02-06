@@ -2,8 +2,8 @@ import { PUBLIC_SEARCH_API_KEY, PUBLIC_SEARCH_COLLECTION, PUBLIC_SEARCH_HOST, PU
 import type { Filter, VersionInfo } from '$lib/interfaces';
 import { get } from "svelte/store";
 import { Client } from "typesense";
-import { default_sort } from "./settings";
-import { current_page, has_more, is_loading, package_list, plone_versions, results_count, search_sort, total_found } from "./stores";
+import { default_sort, language_options, type Language } from "./settings";
+import { current_page, has_more, is_loading, package_list, plone_versions, results_count, search_sort, search_language, total_found } from "./stores";
 
 export const collectionName = PUBLIC_SEARCH_COLLECTION;
 
@@ -27,53 +27,70 @@ export function doSearch(
   filter?: Filter,
   page: number = 1,
   append: boolean = false,
-  sort: string = default_sort
+  sort: string = default_sort,
+  language?: Language
 ) {
   // Guard against concurrent requests
   if (get(is_loading)) {
     return;
   }
 
-  console.log(`filter: ${JSON.stringify(filter)}, page: ${page}, append: ${append}`)
-  let classifiers = ["Framework :: Plone"];
-  if (filter && filter.package_types.length > 0) {
-    classifiers = filter.package_types;
-  }
-  if (term == "" && (filter && (filter.package_types == undefined && filter.plone_versions == undefined))) { return }
-  if (filter && (filter.package_types != undefined || filter.plone_versions != undefined)) {
-    term = term || "*"
-  }
+  // Get current language from store if not provided
+  const currentLanguage = language || get(search_language);
+  const isPython = currentLanguage === 'python';
 
-  let filterString = "";
+  // Map language to registry value
+  const languageConfig = language_options.find(l => l.value === currentLanguage);
+  const registryValue = languageConfig?.registry || 'pypi';
+
+  console.log(`filter: ${JSON.stringify(filter)}, page: ${page}, append: ${append}, language: ${currentLanguage}`)
+
+  // Start with registry filter
+  let filterString = `registry:=${registryValue}`;
   let baseFilterString = filterString;
 
-  // build plone_versions filter string:
-  if (filter && filter.plone_versions.length > 0) {
+  // Python-specific filters (Plone versions and package types)
+  if (isPython) {
+    let classifiers = ["Framework :: Plone"];
+    if (filter && filter.package_types.length > 0) {
+      classifiers = filter.package_types;
+    }
+    if (term == "" && (filter && (filter.package_types == undefined && filter.plone_versions == undefined))) { return }
+    if (filter && (filter.package_types != undefined || filter.plone_versions != undefined)) {
+      term = term || "*"
+    }
+
+    // build plone_versions filter string:
+    if (filter && filter.plone_versions.length > 0) {
+      if (filterString) {
+        filterString += ' && ';
+      }
+      let fvFilterListString = ""
+      filter.plone_versions.forEach((version, key, arr) => {
+        fvFilterListString += `'${version}'`;
+        if (!Object.is(arr.length - 1, key)) {
+          fvFilterListString += ',';
+        }
+      });
+      filterString += `framework_versions:=[${fvFilterListString}]`;
+    }
+
+    // build package_types filter string:
     if (filterString) {
       filterString += ' && ';
     }
-    let fvFilterListString = ""
-    filter.plone_versions.forEach((version, key, arr) => {
-      fvFilterListString += `'${version}'`;
+    let ptFilterListString = ""
+    classifiers.forEach((version, key, arr) => {
+      ptFilterListString += `'${version}'`;
       if (!Object.is(arr.length - 1, key)) {
-        fvFilterListString += ',';
+        ptFilterListString += ',';
       }
     });
-    filterString += `framework_versions:=[${fvFilterListString}]`;
+    filterString += `classifiers:=[${ptFilterListString}]`;
+  } else {
+    // For JavaScript, ensure we have a search term
+    term = term || "*";
   }
-
-  // build package_types filter string:
-  if (filterString) {
-    filterString += ' && ';
-  }
-  let ptFilterListString = ""
-  classifiers.forEach((version, key, arr) => {
-    ptFilterListString += `'${version}'`;
-    if (!Object.is(arr.length - 1, key)) {
-      ptFilterListString += ',';
-    }
-  });
-  filterString += `classifiers:=[${ptFilterListString}]`;
 
   is_loading.set(true);
 
@@ -101,6 +118,10 @@ export function doSearch(
 
   const query_by = "name,title,summary,keywords,first_chapter,main_content,changelog";
   const query_by_weights = "127,127,90,90,75,30,1";
+
+  // Facet fields depend on language
+  const facetBy = isPython ? 'framework_versions,python_versions' : '';
+
   let searchRequests = {
     'searches': [
       {
@@ -111,12 +132,12 @@ export function doSearch(
         'prioritize_token_position': true,
         'prioritize_num_matching_fields': false,
         'sort_by': sortBy,
-        'facet_by': 'framework_versions,python_versions',
+        'facet_by': facetBy,
         'filter_by': filterString
       }
     ]
   }
-  if (filter && filter.plone_versions.length > 0) {
+  if (isPython && filter && filter.plone_versions.length > 0) {
     let facetSearch = {
       'query_by': query_by,
       'query_by_weights': query_by_weights,
@@ -124,7 +145,7 @@ export function doSearch(
       'prioritize_exact_match': true,
       'prioritize_token_position': true,
       'prioritize_num_matching_fields': false,
-      'facet_by': 'framework_versions,python_versions',
+      'facet_by': facetBy,
       'filter_by': baseFilterString
     }
     searchRequests.searches.push(facetSearch as any)
@@ -156,31 +177,34 @@ export function doSearch(
     const currentCount = append ? get(package_list).length : newHits.length;
     has_more.set(currentCount < foundTotal);
 
-    let facetResultsIndex: number = 0;
-    if (searchResults.results.length === 2) {
-      facetResultsIndex++;
-    }
-
-    searchResults.results[facetResultsIndex].facet_counts.forEach((facet: any) => {
-      if (facet.field_name === 'framework_versions') {
-        let versions: VersionInfo[] = [];
-        facet.counts.forEach((version: VersionInfo) => {
-          versions.push(version)
-        })
-        plone_versions.set(versions.sort(function (a, b) {
-          var nameA = a.value.toUpperCase();
-          var nameB = b.value.toUpperCase();
-          if (nameA > nameB) {
-            return -1;
-          }
-          if (nameA < nameB) {
-            return 1;
-          }
-          return 0;
-        }));
-        console.log(versions)
+    // Only process facets for Python
+    if (isPython) {
+      let facetResultsIndex: number = 0;
+      if (searchResults.results.length === 2) {
+        facetResultsIndex++;
       }
-    });
+
+      searchResults.results[facetResultsIndex].facet_counts?.forEach((facet: any) => {
+        if (facet.field_name === 'framework_versions') {
+          let versions: VersionInfo[] = [];
+          facet.counts.forEach((version: VersionInfo) => {
+            versions.push(version)
+          })
+          plone_versions.set(versions.sort(function (a, b) {
+            var nameA = a.value.toUpperCase();
+            var nameB = b.value.toUpperCase();
+            if (nameA > nameB) {
+              return -1;
+            }
+            if (nameA < nameB) {
+              return 1;
+            }
+            return 0;
+          }));
+          console.log(versions)
+        }
+      });
+    }
 
     is_loading.set(false);
   }).catch((error: any) => {
@@ -190,10 +214,11 @@ export function doSearch(
 }
 
 // Helper function to load the next page
-export function loadMore(term?: string, filter?: Filter, sort?: string) {
+export function loadMore(term?: string, filter?: Filter, sort?: string, language?: Language) {
   const nextPage = get(current_page) + 1;
   const currentSort = sort || get(search_sort);
-  doSearch(term, filter, nextPage, true, currentSort);
+  const currentLanguage = language || get(search_language);
+  doSearch(term, filter, nextPage, true, currentSort, currentLanguage);
 }
 
 // Helper function to reset pagination state
@@ -205,13 +230,19 @@ export function resetPagination() {
 }
 
 // Fetch facets only (for initial page load to populate version filters)
-export async function fetchInitialFacets() {
+export async function fetchInitialFacets(language?: Language) {
+  // Only fetch facets for Python packages
+  const currentLanguage = language || get(search_language);
+  if (currentLanguage !== 'python') {
+    return;
+  }
+
   try {
     const result = await searchClient.collections(collectionName).documents().search({
       q: '*',
       facet_by: 'framework_versions',
       per_page: 0,
-      filter_by: "classifiers:=['Framework :: Plone', 'Framework :: Plone :: Addon', 'Framework :: Plone :: Theme', 'Framework :: Plone :: Core', 'Framework :: Plone :: Distribution']"
+      filter_by: "registry:=pypi && classifiers:=['Framework :: Plone', 'Framework :: Plone :: Addon', 'Framework :: Plone :: Theme', 'Framework :: Plone :: Core', 'Framework :: Plone :: Distribution']"
     });
 
     if (result.facet_counts) {

@@ -3,13 +3,13 @@
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import type { Filter } from "$lib/interfaces";
-  import { loadFilterSettings, loadSortSetting, saveFilterSettings } from "$lib/localStorage";
+  import { loadFilterSettings, loadSortSetting, saveFilterSettings, loadLanguageSetting, saveLanguageSetting } from "$lib/localStorage";
   import { pageState } from "$lib/page-state.svelte";
-  import { plone_versions, search_filter, search_sort, search_term, sort_initialized } from "$lib/stores";
+  import { plone_versions, search_filter, search_sort, search_term, sort_initialized, search_language, user_selected_sort } from "$lib/stores";
   import { buildUrlString, serializeToUrl, type UrlSearchState } from "$lib/urlParams";
   import { onMount } from "svelte";
   import { doSearch, resetPagination, fetchInitialFacets } from "./search";
-  import { default_package_types, default_plone_versions, default_sort, package_types, PRIMARY_PLONE_VERSION_THRESHOLD, relevance_sort_option } from "./settings";
+  import { default_package_types, default_plone_versions, default_sort, package_types, PRIMARY_PLONE_VERSION_THRESHOLD, relevance_sort_option, language_options, default_language, type Language } from "./settings";
 
   // Props from load function
   interface Props {
@@ -22,7 +22,11 @@
   let showPloneVersionsFilter = $state(true);
   let pVersions = $state<string[]>([...default_plone_versions]);
   let pTypes = $state<string[]>([...default_package_types]);
+  let selectedLanguage = $state<Language>(default_language);
   let isInitialized = $state(false);
+
+  // Derived: show Python-specific filters only when Python is selected
+  let showPythonFilters = $derived(selectedLanguage === 'python');
 
   // Flag to prevent circular URL updates
   let isUrlUpdate = $state(false);
@@ -38,6 +42,9 @@
 
   // Track the previous URL to detect actual browser navigation
   let previousUrl = $state<string | null>(null);
+
+  // Track if we initialized from URL params (to prevent auto-relevance override)
+  let initializedFromUrl = $state(false);
 
   // Progressive disclosure states
   let showOlderVersions = $state(false);
@@ -108,8 +115,16 @@
 
   // Initialize state: URL params > localStorage > defaults
   onMount(async () => {
-    // Fetch all available versions immediately for filter display
-    await fetchInitialFacets();
+    // Load language first (affects which facets to fetch)
+    if (urlHasParams && urlParams.language) {
+      selectedLanguage = urlParams.language;
+    } else {
+      selectedLanguage = loadLanguageSetting();
+    }
+    search_language.set(selectedLanguage);
+
+    // Fetch all available versions immediately for filter display (only for Python)
+    await fetchInitialFacets(selectedLanguage);
 
     if (urlHasParams) {
       // URL params take priority
@@ -123,10 +138,16 @@
       // Validate: relevance sort requires active search term
       const hasActiveSearchTerm = searchTermFromUrl !== '' && searchTermFromUrl !== '*';
       const isRelevanceSort = urlParams.sort === relevance_sort_option.value;
-      // Mark that we loaded with a search term to prevent auto-relevance override
-      if (hasActiveSearchTerm) {
-        lastSearchHadActiveTerm = true;
-        lastSearchTermWasActive = true;
+      // Only set initializedFromUrl if URL has an explicit sort param
+      // This prevents auto-relevance from overriding an explicit URL sort preference
+      if (urlParams.hasExplicitSort) {
+        initializedFromUrl = true;
+        // Mark that we loaded with a search term only when there's also an explicit sort
+        // This prevents auto-relevance override for URLs like ?q=plone&sort=upload_timestamp:desc
+        if (hasActiveSearchTerm) {
+          lastSearchHadActiveTerm = true;
+          lastSearchTermWasActive = true;
+        }
       }
       if (isRelevanceSort && !hasActiveSearchTerm) {
         // Relevance sort without search term - fall back to default
@@ -177,6 +198,11 @@
     const urlVersion = currentUrl.searchParams.get('version');
     const urlType = currentUrl.searchParams.get('type');
     const urlSort = currentUrl.searchParams.get('sort');
+    const urlLang = currentUrl.searchParams.get('lang');
+
+    // Update language from URL
+    selectedLanguage = urlLang === 'js' ? 'javascript' : 'python';
+    search_language.set(selectedLanguage);
 
     // Update local state from URL
     const newTerm = urlQ || '';
@@ -233,7 +259,9 @@
       searchTerm: term || '*',
       ploneVersions: pVersions,
       packageTypes: pTypes,
-      sort: $search_sort
+      sort: $search_sort,
+      language: selectedLanguage,
+      hasExplicitSort: true  // User is explicitly setting values via UI
     };
 
     const params = serializeToUrl(state);
@@ -269,6 +297,15 @@
     }
   });
 
+  // Save language setting and update store when language changes
+  $effect(() => {
+    if (isInitialized) {
+      const lang = selectedLanguage;
+      saveLanguageSetting(lang);
+      search_language.set(lang);
+    }
+  });
+
   // Track filter changes and update URL (immediate)
   $effect(() => {
     if (isInitialized && !isUrlUpdate) {
@@ -276,6 +313,7 @@
       const _versions = pVersions;
       const _types = pTypes;
       const _sort = $search_sort;
+      const _lang = selectedLanguage;
       updateUrl();
     }
   });
@@ -289,9 +327,19 @@
     const hasActiveSearch = _term !== '' && _term !== '*';
     const wasSearchActive = lastSearchTermWasActive;
 
-    // Auto-select relevance sort when search term is entered (before debounce)
-    if (hasActiveSearch && !wasSearchActive) {
+    // Auto-select relevance sort ONLY if:
+    // - Not initialized from URL (URL sort takes priority)
+    // - User hasn't explicitly selected a sort
+    if (hasActiveSearch && !wasSearchActive && !initializedFromUrl && !$user_selected_sort) {
       search_sort.set(relevance_sort_option.value);
+    }
+    // Clear URL flag after first processing
+    if (initializedFromUrl) {
+      initializedFromUrl = false;
+    }
+    // Reset user_selected_sort when search is cleared
+    if (!hasActiveSearch && wasSearchActive) {
+      user_selected_sort.set(false);
     }
     lastSearchTermWasActive = hasActiveSearch;
 
@@ -325,13 +373,15 @@
 
     const hasActiveSearch = term !== '' && term !== '*';
     const storeSort = $search_sort;
+    const currentLang = selectedLanguage;
 
     // Compute effective sort - handles race condition where
     // the auto-sort effect hasn't updated the store yet
     let effectiveSort = storeSort;
     if (hasActiveSearch && storeSort !== relevance_sort_option.value) {
       // First search with active term should use relevance
-      if (!lastSearchHadActiveTerm) {
+      // BUT respect URL params and user selections
+      if (!lastSearchHadActiveTerm && !initializedFromUrl && !$user_selected_sort) {
         effectiveSort = relevance_sort_option.value;
       }
     }
@@ -339,7 +389,7 @@
 
     // Reset pagination and perform new search
     resetPagination();
-    doSearch(term, filter, 1, false, effectiveSort);
+    doSearch(term, filter, 1, false, effectiveSort, currentLang);
   });
 
   function handleSubmit(e: Event) {
@@ -368,13 +418,25 @@
       <input
         type="text"
         class="search-form__input"
-        placeholder="Enter add-on name"
+        placeholder={showPythonFilters ? "Enter add-on name" : "Enter package name"}
         spellcheck="false"
         name="text"
         bind:value={term}
       />
     </div>
+    <div class="search-form__field search-form__field--language">
+      <div class="search-form__label">Language</div>
+      <div class="search-form__language-switch">
+        {#each language_options as lang}
+          <label class="language-option" class:selected={selectedLanguage === lang.value}>
+            <input type="radio" name="language" value={lang.value} bind:group={selectedLanguage} />
+            <span class="language-option__label">{lang.title}</span>
+          </label>
+        {/each}
+      </div>
+    </div>
     <div class="search-form__filters">
+      {#if showPythonFilters}
       <div class="search-form__field search-form__field--versions">
         <button
           type="button"
@@ -500,6 +562,7 @@
           {/if}
         </div>
       </div>
+      {/if}
     </div>
   </form>
 </div>
@@ -586,6 +649,45 @@
         width: 16px;
         height: 16px;
       }
+    }
+
+    &__language-switch {
+      display: flex;
+      gap: var(--spacing-sm, 0.5rem);
+    }
+  }
+
+  .language-option {
+    display: flex;
+    align-items: center;
+    padding: 0.4em 0.8em;
+    border: 1px solid var(--color-border, #d3d3d3);
+    border-radius: var(--border-radius-sm, 4px);
+    background: var(--color-background, #fff);
+    cursor: pointer;
+    transition: background-color 0.2s, border-color 0.2s;
+
+    input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    &__label {
+      font-size: var(--font-size-sm, 0.9rem);
+      font-weight: var(--font-weight-normal, 400);
+    }
+
+    &:hover {
+      background: var(--color-secondary, #fffdda);
+      border-color: var(--color-primary, #0095d3);
+    }
+
+    &.selected {
+      background: var(--color-primary, #0095d3);
+      border-color: var(--color-primary, #0095d3);
+      color: #fff;
     }
   }
 

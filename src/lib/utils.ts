@@ -1,4 +1,29 @@
 /**
+ * Extracts display text from a health score bonus/problem item.
+ * Handles both string format and object format from API.
+ */
+export function getHealthScoreItemText(item: string | Record<string, unknown>): string {
+  if (typeof item === 'string') {
+    return item;
+  }
+  if (typeof item === 'object' && item !== null) {
+    return String(item.reason || item.message || item.name || item.label || item.description || item.text || JSON.stringify(item));
+  }
+  return String(item);
+}
+
+/**
+ * Extracts the points value from a health score bonus/problem item.
+ * Returns undefined if no points are available.
+ */
+export function getHealthScoreItemPoints(item: string | Record<string, unknown>): number | undefined {
+  if (typeof item === 'object' && item !== null && typeof item.points === 'number') {
+    return item.points;
+  }
+  return undefined;
+}
+
+/**
  * Compare two version strings for sorting (descending - newer first)
  */
 export function compareVersions(a: string, b: string): number {
@@ -224,6 +249,36 @@ export const HEALTH_SCORE_CATEGORIES = {
         description: 'How recently the package was updated and maintained',
     },
 } as const;
+
+/**
+ * Maximum values for each health score category
+ */
+export const HEALTH_SCORE_MAX = {
+    documentation: 30,
+    metadata: 30,
+    recency: 40,
+} as const;
+
+/**
+ * Calculate percentage for a health score category
+ * @deprecated Use getCategoryPercentage instead which uses max_points from API
+ */
+export function getHealthScorePercentage(score: number, category: keyof typeof HEALTH_SCORE_MAX): number {
+    const max = HEALTH_SCORE_MAX[category];
+    return Math.round((score / max) * 100);
+}
+
+import type { HealthScoreCategory } from './interfaces';
+
+/**
+ * Calculate percentage for a health score category using API-provided max_points
+ * Falls back to HEALTH_SCORE_MAX constants if max_points not available
+ * Percentage is capped at 100% even when bonuses push points above max_points
+ */
+export function getCategoryPercentage(category: HealthScoreCategory, categoryName?: keyof typeof HEALTH_SCORE_MAX): number {
+    const max = category.max_points ?? (categoryName ? HEALTH_SCORE_MAX[categoryName] : 30);
+    return Math.min(100, Math.round((category.points / max) * 100));
+}
 
 export function processProjectUrls(projectUrls: Record<string, string>): ProcessedProjectUrl[] {
     const processed: ProcessedProjectUrl[] = [];

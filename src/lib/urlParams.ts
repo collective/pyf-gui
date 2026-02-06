@@ -1,4 +1,4 @@
-import { default_plone_versions, default_package_types, default_sort } from './settings';
+import { default_plone_versions, default_package_types, default_sort, default_language, type Language } from './settings';
 
 // Type short codes for URL params
 const TYPE_CODES: Record<string, string> = {
@@ -17,6 +17,8 @@ export interface UrlSearchState {
   ploneVersions: string[];
   packageTypes: string[];
   sort: string;
+  language: Language;
+  hasExplicitSort: boolean;  // true when sort param was explicitly in URL
 }
 
 /**
@@ -27,6 +29,13 @@ export function parseUrlParams(params: URLSearchParams): UrlSearchState {
   const version = params.get('version');
   const type = params.get('type');
   const sort = params.get('sort');
+  const lang = params.get('lang');
+
+  // Map lang param: 'js' -> 'javascript', default to 'python'
+  let language: Language = default_language;
+  if (lang === 'js') {
+    language = 'javascript';
+  }
 
   return {
     searchTerm: q || '*',
@@ -36,7 +45,9 @@ export function parseUrlParams(params: URLSearchParams): UrlSearchState {
     packageTypes: type
       ? type.split(',').map(code => CODE_TO_TYPE[code.trim()]).filter(Boolean)
       : [...default_package_types],
-    sort: sort || default_sort
+    sort: sort || default_sort,
+    language,
+    hasExplicitSort: sort !== null  // true when sort param was explicitly in URL
   };
 }
 
@@ -82,6 +93,11 @@ export function serializeToUrl(state: UrlSearchState): URLSearchParams {
     params.set('sort', state.sort);
   }
 
+  // Only add lang if JavaScript is selected (Python is default)
+  if (state.language === 'javascript') {
+    params.set('lang', 'js');
+  }
+
   return params;
 }
 
@@ -89,7 +105,7 @@ export function serializeToUrl(state: UrlSearchState): URLSearchParams {
  * Check if URL has any search-related params
  */
 export function hasSearchParams(params: URLSearchParams): boolean {
-  return params.has('q') || params.has('version') || params.has('type') || params.has('sort');
+  return params.has('q') || params.has('version') || params.has('type') || params.has('sort') || params.has('lang');
 }
 
 /**

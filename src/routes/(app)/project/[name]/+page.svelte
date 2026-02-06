@@ -4,7 +4,10 @@
     compactPloneVersions,
     compactPythonVersions,
     formatNumber,
+    getCategoryPercentage,
     getHealthScoreColor,
+    getHealthScoreItemPoints,
+    getHealthScoreItemText,
     getHealthScoreLabel,
     getPackageType,
     HEALTH_SCORE_CATEGORIES,
@@ -15,6 +18,19 @@
 
   let { data } = $props();
   let versionsExpanded = $state(false);
+  let documentationExpanded = $state(false);
+  let metadataExpanded = $state(false);
+  let recencyExpanded = $state(false);
+
+  // Derived: check if this is an npm package
+  let isNpmPackage = $derived(data.hit?.registry === 'npm');
+
+  // Derived: registry URL (npm or PyPI)
+  let registryUrl = $derived(
+    isNpmPackage
+      ? `https://www.npmjs.com/package/${data.hit?.name}`
+      : data.hit?.project_url
+  );
 
   // Set page title and version on load
   $effect(() => {
@@ -137,40 +153,201 @@
       {#if data.hit.health_score_breakdown}
       <div class="health-score_breakdown">
         {#if data.hit.health_score_breakdown.documentation !== undefined}
-          {@const catColors = getHealthScoreColor(data.hit.health_score_breakdown.documentation)}
-          <div class="health-score_category" title={HEALTH_SCORE_CATEGORIES.documentation.description}>
-            <span class="health-score_category-label">{HEALTH_SCORE_CATEGORIES.documentation.label}</span>
+          {@const category = data.hit.health_score_breakdown.documentation}
+          {@const percentage = getCategoryPercentage(category, 'documentation')}
+          {@const catColors = getHealthScoreColor(percentage)}
+          {@const hasBonuses = category.bonuses?.length > 0}
+          {@const hasProblems = category.problems?.length > 0}
+          {@const hasDetails = hasBonuses || hasProblems}
+          <button
+            class="health-score_category"
+            class:clickable={hasDetails}
+            title={HEALTH_SCORE_CATEGORIES.documentation.description}
+            onclick={() => hasDetails && (documentationExpanded = !documentationExpanded)}
+            disabled={!hasDetails}
+          >
+              <span class="health-score_category-label">{HEALTH_SCORE_CATEGORIES.documentation.label}</span>
+            {#if hasDetails}
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="category-chevron" class:expanded={documentationExpanded}>
+                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+              </svg>
+            {/if}
             <span class="health-score_category-value" style="background-color: {catColors.bg}; color: {catColors.text};">
-              {data.hit.health_score_breakdown.documentation}
+              {percentage}%
             </span>
-          </div>
+          </button>
+          {#if documentationExpanded && hasDetails}
+            {#if hasBonuses}
+              <ul class="health-score_list health-score_bonuses">
+                {#each category.bonuses as bonus, i (i)}
+                  <li class="health-score_item">
+                    <span class="health-score_item-icon health-score_item-icon--bonus">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                      </svg>
+                    </span>
+                    <span class="health-score_item-text">{getHealthScoreItemText(bonus)}</span>
+                    {#if getHealthScoreItemPoints(bonus)}
+                      <span class="health-score_item-points health-score_item-points--bonus">+{getHealthScoreItemPoints(bonus)}</span>
+                    {/if}
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+            {#if hasProblems}
+              <ul class="health-score_list health-score_problems">
+                {#each category.problems as problem, i (i)}
+                  <li class="health-score_item">
+                    <span class="health-score_item-icon health-score_item-icon--problem">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                      </svg>
+                    </span>
+                    <span class="health-score_item-text">{getHealthScoreItemText(problem)}</span>
+                    {#if getHealthScoreItemPoints(problem)}
+                      <span class="health-score_item-points health-score_item-points--problem">{getHealthScoreItemPoints(problem)}</span>
+                    {/if}
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+          {/if}
         {/if}
         {#if data.hit.health_score_breakdown.metadata !== undefined}
-          {@const catColors = getHealthScoreColor(data.hit.health_score_breakdown.metadata)}
-          <div class="health-score_category" title={HEALTH_SCORE_CATEGORIES.metadata.description}>
-            <span class="health-score_category-label">{HEALTH_SCORE_CATEGORIES.metadata.label}</span>
+          {@const category = data.hit.health_score_breakdown.metadata}
+          {@const percentage = getCategoryPercentage(category, 'metadata')}
+          {@const catColors = getHealthScoreColor(percentage)}
+          {@const hasBonuses = category.bonuses?.length > 0}
+          {@const hasProblems = category.problems?.length > 0}
+          {@const hasDetails = hasBonuses || hasProblems}
+          <button
+            class="health-score_category"
+            class:clickable={hasDetails}
+            title={HEALTH_SCORE_CATEGORIES.metadata.description}
+            onclick={() => hasDetails && (metadataExpanded = !metadataExpanded)}
+            disabled={!hasDetails}
+          >
+              <span class="health-score_category-label">{HEALTH_SCORE_CATEGORIES.metadata.label}</span>
+            {#if hasDetails}
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="category-chevron" class:expanded={metadataExpanded}>
+                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+              </svg>
+            {/if}
             <span class="health-score_category-value" style="background-color: {catColors.bg}; color: {catColors.text};">
-              {data.hit.health_score_breakdown.metadata}
+              {percentage}%
             </span>
-          </div>
+          </button>
+          {#if metadataExpanded && hasDetails}
+            {#if hasBonuses}
+              <ul class="health-score_list health-score_bonuses">
+                {#each category.bonuses as bonus, i (i)}
+                  <li class="health-score_item">
+                    <span class="health-score_item-icon health-score_item-icon--bonus">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                      </svg>
+                    </span>
+                    <span class="health-score_item-text">{getHealthScoreItemText(bonus)}</span>
+                    {#if getHealthScoreItemPoints(bonus)}
+                      <span class="health-score_item-points health-score_item-points--bonus">+{getHealthScoreItemPoints(bonus)}</span>
+                    {/if}
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+            {#if hasProblems}
+              <ul class="health-score_list health-score_problems">
+                {#each category.problems as problem, i (i)}
+                  <li class="health-score_item">
+                    <span class="health-score_item-icon health-score_item-icon--problem">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                      </svg>
+                    </span>
+                    <span class="health-score_item-text">{getHealthScoreItemText(problem)}</span>
+                    {#if getHealthScoreItemPoints(problem)}
+                      <span class="health-score_item-points health-score_item-points--problem">{getHealthScoreItemPoints(problem)}</span>
+                    {/if}
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+          {/if}
         {/if}
         {#if data.hit.health_score_breakdown.recency !== undefined}
-          {@const catColors = getHealthScoreColor(data.hit.health_score_breakdown.recency)}
-          <div class="health-score_category" title={HEALTH_SCORE_CATEGORIES.recency.description}>
-            <span class="health-score_category-label">{HEALTH_SCORE_CATEGORIES.recency.label}</span>
+          {@const category = data.hit.health_score_breakdown.recency}
+          {@const percentage = getCategoryPercentage(category, 'recency')}
+          {@const catColors = getHealthScoreColor(percentage)}
+          {@const hasBonuses = category.bonuses?.length > 0}
+          {@const hasProblems = category.problems?.length > 0}
+          {@const hasDetails = hasBonuses || hasProblems}
+          <button
+            class="health-score_category"
+            class:clickable={hasDetails}
+            title={HEALTH_SCORE_CATEGORIES.recency.description}
+            onclick={() => hasDetails && (recencyExpanded = !recencyExpanded)}
+            disabled={!hasDetails}
+          >
+              <span class="health-score_category-label">{HEALTH_SCORE_CATEGORIES.recency.label}</span>
+            {#if hasDetails}
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="category-chevron" class:expanded={recencyExpanded}>
+                <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+              </svg>
+            {/if}
             <span class="health-score_category-value" style="background-color: {catColors.bg}; color: {catColors.text};">
-              {data.hit.health_score_breakdown.recency}
+              {percentage}%
             </span>
-          </div>
+          </button>
+          {#if recencyExpanded && hasDetails}
+            {#if hasBonuses}
+              <ul class="health-score_list health-score_bonuses">
+                {#each category.bonuses as bonus, i (i)}
+                  <li class="health-score_item">
+                    <span class="health-score_item-icon health-score_item-icon--bonus">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                      </svg>
+                    </span>
+                    <span class="health-score_item-text">{getHealthScoreItemText(bonus)}</span>
+                    {#if getHealthScoreItemPoints(bonus)}
+                      <span class="health-score_item-points health-score_item-points--bonus">+{getHealthScoreItemPoints(bonus)}</span>
+                    {/if}
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+            {#if hasProblems}
+              <ul class="health-score_list health-score_problems">
+                {#each category.problems as problem, i (i)}
+                  <li class="health-score_item">
+                    <span class="health-score_item-icon health-score_item-icon--problem">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                      </svg>
+                    </span>
+                    <span class="health-score_item-text">{getHealthScoreItemText(problem)}</span>
+                    {#if getHealthScoreItemPoints(problem)}
+                      <span class="health-score_item-points health-score_item-points--problem">{getHealthScoreItemPoints(problem)}</span>
+                    {/if}
+                  </li>
+                {/each}
+              </ul>
+            {/if}
+          {/if}
         {/if}
       </div>
+      {/if}
+      {#if data.hit.health_score_last_calculated}
+        <div class="health-score_timestamp">
+          Score calculated: {toLocalizedTime(data.hit.health_score_last_calculated)}
+        </div>
       {/if}
     </div>
   </div>
   {/if}
   {#if data.hit.download_total != undefined || data.hit.download_last_month != undefined}
   <div class="downloads">
-    <div class="sidebar-label">PyPI Downloads</div>
+    <div class="sidebar-label">{isNpmPackage ? 'npm Downloads' : 'PyPI Downloads'}</div>
     <div class="downloads_data">
       {#if data.hit.download_total != undefined}
         <div title="Total downloads">
@@ -248,7 +425,7 @@
   {/if}
   <div class="versions" class:expanded={versionsExpanded}>
       <div class="sidebar-label versions-header">
-        Releases on <a href="{data.hit.project_url}" target="_blank" title="open project page on PyPi">PyPi</a>
+        Releases on <a href={registryUrl} target="_blank" title="open project page on {isNpmPackage ? 'npm' : 'PyPI'}">{isNpmPackage ? 'npm' : 'PyPI'}</a>
         <button
           class="versions-toggle"
           onclick={() => versionsExpanded = !versionsExpanded}
@@ -281,8 +458,13 @@
                   d="M15.528 2.973a.75.75 0 0 1 .472.696v8.662a.75.75 0 0 1-.472.696l-7.25 2.9a.75.75 0 0 1-.557 0l-7.25-2.9A.75.75 0 0 1 0 12.331V3.669a.75.75 0 0 1 .471-.696L7.443.184l.004-.001.274-.11a.75.75 0 0 1 .558 0l.274.11.004.001 6.971 2.789Zm-1.374.527L8 5.962 1.846 3.5 1 3.839v.4l6.5 2.6v7.922l.5.2.5-.2V6.84l6.5-2.6v-.4l-.846-.339Z"
                 />
               </svg>
-              <a href="{data.hit.project_url}{release.version}" target="_blank">{release.version}</a>
+              {#if isNpmPackage}
+                <a href="https://www.npmjs.com/package/{data.hit.name}/v/{release.version}" target="_blank">{release.version}</a>
+              {:else}
+                <a href="{data.hit.project_url}{release.version}" target="_blank">{release.version}</a>
+              {/if}
             </div>
+            {#if !isNpmPackage}
             <div class="release-versions">
               <div class="plone icon">
                   <img src="/images/plone-icon.svg" alt="Plone Logo" />
@@ -293,6 +475,7 @@
                 {compactPythonVersions(release.python_versions)}
               </div>
             </div>
+            {/if}
           </li>
         {/each}
       </ul>
@@ -301,7 +484,9 @@
   <div class="keywords">
     keywords: {data.hit.keywords}
   </div>
+  {#if !isNpmPackage}
   <div class="type">Type: {getPackageType(data.hit.classifiers)}</div>
+  {/if}
 </aside>
 <article class="description">
   <!-- <h1>{data.hit.name}</h1> -->
@@ -723,7 +908,36 @@
       justify-content: space-between;
       align-items: center;
       padding: var(--spacing-quarter, 7.5px) 0;
+      width: 100%;
+      background: transparent;
+      border: none;
+      font-size: inherit;
+      font-family: inherit;
+      color: inherit;
+      text-align: left;
       cursor: help;
+
+      &.clickable {
+        cursor: pointer;
+
+        &:hover {
+          background-color: rgba(0, 109, 173, 0.05);
+        }
+      }
+
+      &:disabled {
+        cursor: help;
+      }
+    }
+
+    .category-chevron {
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+      margin-left: var(--spacing-quarter, 7.5px);
+
+      &.expanded {
+        transform: rotate(180deg);
+      }
     }
 
     .health-score_category-label {
@@ -732,6 +946,7 @@
 
     .health-score_category-value {
       display: inline-flex;
+      margin-left: auto;
       align-items: center;
       justify-content: center;
       font-size: var(--font-size-sm, 0.8rem);
@@ -739,6 +954,76 @@
       padding: 0.15em 0.5em;
       border-radius: 0.25em;
       min-width: 2em;
+    }
+
+    .health-score_list {
+      margin: 0;
+      padding: 0 0 0 var(--spacing-quarter, 7.5px);
+      font-size: var(--font-size-xs, 0.75rem);
+      list-style: none;
+    }
+
+    .health-score_item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5em;
+      padding: 3px 0;
+    }
+
+    .health-score_item-icon {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      margin-top: 1px;
+    }
+
+    .health-score_item-icon--bonus {
+      color: #28a745;
+    }
+
+    .health-score_item-icon--problem {
+      color: #dc3545;
+    }
+
+    .health-score_item-text {
+      flex-grow: 1;
+      color: var(--color-text, #464646);
+    }
+
+    .health-score_item-points {
+      flex-shrink: 0;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.1em 0.4em;
+      border-radius: 0.25em;
+      margin-left: auto;
+    }
+
+    .health-score_item-points--bonus {
+      background-color: rgba(40, 167, 69, 0.15);
+      color: #28a745;
+    }
+
+    .health-score_item-points--problem {
+      background-color: rgba(220, 53, 69, 0.15);
+      color: #dc3545;
+    }
+
+    .health-score_bonuses .health-score_item-text {
+      color: #1e7e34;
+    }
+
+    .health-score_problems .health-score_item-text {
+      color: var(--color-text-muted, #666);
+    }
+
+    .health-score_timestamp {
+      font-size: var(--font-size-xs, 0.75rem);
+      color: var(--color-text-muted, #666);
+      padding: var(--spacing-quarter, 7.5px);
+      margin-top: var(--spacing-quarter, 7.5px);
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      font-style: italic;
     }
   }
 

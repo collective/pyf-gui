@@ -11,7 +11,7 @@ interface Release {
 export async function load({ params }): Promise<{ hit: Package; releases: Release[] } | undefined> {
 
     let searchParameters = {
-        'q': params.name,
+        'q': decodeURIComponent(params.name),
         'query_by': 'name',
         'sort_by': 'upload_timestamp:desc'
     }

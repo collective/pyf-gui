@@ -1,13 +1,14 @@
 // localStorage utility module for persisting user preferences
 // Handles SSR gracefully by checking for window availability
 
-import { default_plone_versions, default_package_types, default_sort } from './settings';
+import { default_plone_versions, default_package_types, default_sort, default_language, type Language } from './settings';
 
 // localStorage keys
 const KEYS = {
   PLONE_VERSIONS: 'pyf_plone_versions',
   PACKAGE_TYPES: 'pyf_package_types',
-  SORT: 'pyf_sort'
+  SORT: 'pyf_sort',
+  LANGUAGE: 'pyf_language'
 } as const;
 
 /**
@@ -88,5 +89,39 @@ export function loadSortSetting(): string {
   } catch (e) {
     console.warn('Failed to load sort setting from localStorage:', e);
     return default_sort;
+  }
+}
+
+/**
+ * Save language setting to localStorage
+ */
+export function saveLanguageSetting(language: Language): void {
+  if (!isBrowser()) return;
+
+  try {
+    localStorage.setItem(KEYS.LANGUAGE, language);
+  } catch (e) {
+    console.warn('Failed to save language setting to localStorage:', e);
+  }
+}
+
+/**
+ * Load language setting from localStorage
+ * Returns default if not found or on SSR
+ */
+export function loadLanguageSetting(): Language {
+  if (!isBrowser()) {
+    return default_language;
+  }
+
+  try {
+    const storedLanguage = localStorage.getItem(KEYS.LANGUAGE);
+    if (storedLanguage === 'python' || storedLanguage === 'javascript') {
+      return storedLanguage;
+    }
+    return default_language;
+  } catch (e) {
+    console.warn('Failed to load language setting from localStorage:', e);
+    return default_language;
   }
 }

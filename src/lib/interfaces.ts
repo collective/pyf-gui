@@ -2,6 +2,7 @@
 export interface Filter {
     plone_versions: string[];
     package_types: string[];
+    language?: 'python' | 'javascript';
 }
 
 export interface Contributor {
@@ -19,6 +20,15 @@ export interface VersionInfo {
   value: string;
   highlighted: string;
   count: number;
+}
+
+// Health score category with bonuses, points, and problems
+// Bonuses and problems can be strings or objects depending on API response
+export interface HealthScoreCategory {
+  bonuses: (string | Record<string, unknown>)[];
+  max_points?: number;  // Maximum points for this category (from API)
+  points: number;
+  problems: (string | Record<string, unknown>)[];
 }
 
 export interface Package {
@@ -50,14 +60,18 @@ export interface Package {
   // Health score
   health_score?: number;
   health_score_breakdown?: {
-    documentation?: number;
-    metadata?: number;
-    recency?: number;
+    documentation?: HealthScoreCategory;
+    metadata?: HealthScoreCategory;
+    recency?: HealthScoreCategory;
   };
+  health_score_last_calculated?: number;
 
   // Project URLs from PyPI metadata
   project_urls?: Record<string, string>;
 
   // Contributors
   contributors?: Contributor[];
+
+  // Registry source (pypi or npm)
+  registry?: 'pypi' | 'npm';
 }

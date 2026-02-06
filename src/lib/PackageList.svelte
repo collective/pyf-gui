@@ -3,7 +3,7 @@
   import PackageItem from "$lib/PackageItem.svelte";
   import { loadMore } from "$lib/search";
   import { default_sort, relevance_sort_option, sort_options } from "$lib/settings";
-  import { has_more, is_loading, package_list, search_filter, search_sort, search_term, total_found } from "$lib/stores";
+  import { has_more, is_loading, package_list, search_filter, search_sort, search_term, total_found, user_selected_sort } from "$lib/stores";
   import { onDestroy, onMount } from "svelte";
   import { get } from "svelte/store";
 
@@ -31,6 +31,7 @@
 
   function handleSortChange(event: Event) {
     const target = event.target as HTMLSelectElement;
+    user_selected_sort.set(true);  // User made explicit selection
     search_sort.set(target.value);
     // Only save non-relevance sorts to localStorage
     if (target.value !== relevance_sort_option.value) {

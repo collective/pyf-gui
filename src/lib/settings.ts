@@ -36,3 +36,13 @@ export const relevance_sort_option = {
 };
 
 export const default_sort = 'name_sortable:asc';
+
+// Language/registry configuration
+export type Language = 'python' | 'javascript';
+
+export const language_options = [
+  { value: 'python' as const, title: 'Python', registry: 'pypi' },
+  { value: 'javascript' as const, title: 'JavaScript', registry: 'npm' }
+];
+
+export const default_language: Language = 'python';

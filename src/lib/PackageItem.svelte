@@ -3,6 +3,16 @@
 
   let { item } = $props<{ item: any }>();
 
+  // Derived: check if this is an npm package
+  let isNpmPackage = $derived(item.registry === 'npm');
+
+  // Derived: registry URL (npm or PyPI)
+  let registryUrl = $derived(
+    isNpmPackage
+      ? `https://www.npmjs.com/package/${item.name}`
+      : `https://pypi.org/project/${item.name}/`
+  );
+
   function toLocalizedDate(datetime: string | number | null): string {
     if (!datetime) { return "" }
     // Handle Unix timestamps (numbers in seconds)
@@ -20,7 +30,7 @@
     <div class="package-card__info">
       <div class="package-card__title">
         <h2>
-          <a href="/project/{item.name}">{item.name}</a>
+          <a href="/project/{encodeURIComponent(item.name)}">{item.name}</a>
           {#if item.health_score !== undefined}
             {@const colors = getHealthScoreColor(item.health_score)}
             <span class="health-score-badge" style="background-color: {colors.bg}; color: {colors.text};" title="Health Score">
@@ -36,44 +46,57 @@
   <div class="package-card__right">
     <div class="package-card__versions">
       <div class="package-card__versions-left">
-        <div class="package-card__plone-versions">
-          <a href="https://pypi.org/project/{item.name}/" target="_blank" rel="noopener noreferrer">
-            <div class="package-card__version-icon">
-              <img src="/images/plone-icon.svg" alt="Plone Logo" />
-            </div>
-            <ul title={getPloneVersions(item.classifiers).join(', ')}>
-              {#each getPloneVersions(item.classifiers) as ploneVersion}
-                <li>{ploneVersion}</li>
-              {/each}
-            </ul>
-          </a>
-        </div>
-        <div class="package-card__python-versions">
-          <a href="https://pypi.org/project/{item.name}/" target="_blank" rel="noopener noreferrer">
-            <div class="package-card__version-icon">
-              <img src="/images/python-logo-only.svg" alt="Python Logo" />
-            </div>
-            <ul title={getPythonVersions(item.classifiers).join(', ')}>
-              {#each getPythonVersions(item.classifiers) as pythonVersion}
-                <li>{pythonVersion}</li>
-              {/each}
-            </ul>
-          </a>
-        </div>
+        {#if isNpmPackage}
+          <div class="package-card__npm-info">
+            <a href={registryUrl} target="_blank" rel="noopener noreferrer">
+              <div class="package-card__version-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 576 512" fill="currentColor">
+                  <path d="M288 288h-32v-64h32v64zm288-128v192H288v32H160v-32H0V160h576zm-416 32H32v128h64v-96h32v96h32V192zm160 0H192v160h64v-32h64V192zm224 0H352v128h64v-96h32v96h32v-96h32v96h32V192z"/>
+                </svg>
+              </div>
+              <span class="package-card__registry-label">npm package</span>
+            </a>
+          </div>
+        {:else}
+          <div class="package-card__plone-versions">
+            <a href={registryUrl} target="_blank" rel="noopener noreferrer">
+              <div class="package-card__version-icon">
+                <img src="/images/plone-icon.svg" alt="Plone Logo" />
+              </div>
+              <ul title={getPloneVersions(item.classifiers).join(', ')}>
+                {#each getPloneVersions(item.classifiers) as ploneVersion}
+                  <li>{ploneVersion}</li>
+                {/each}
+              </ul>
+            </a>
+          </div>
+          <div class="package-card__python-versions">
+            <a href={registryUrl} target="_blank" rel="noopener noreferrer">
+              <div class="package-card__version-icon">
+                <img src="/images/python-logo-only.svg" alt="Python Logo" />
+              </div>
+              <ul title={getPythonVersions(item.classifiers).join(', ')}>
+                {#each getPythonVersions(item.classifiers) as pythonVersion}
+                  <li>{pythonVersion}</li>
+                {/each}
+              </ul>
+            </a>
+          </div>
+        {/if}
       </div>
       <div class="package-card__versions-right">
         {#if item.download_last_month != undefined}
-          <a href="https://pypi.org/project/{item.name}/" target="_blank" rel="noopener noreferrer" class="package-card__downloads" title="Monthly downloads">
+          <a href={registryUrl} target="_blank" rel="noopener noreferrer" class="package-card__downloads" title={isNpmPackage ? "Weekly downloads" : "Monthly downloads"}>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
               <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
               <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
             </svg>
-            <span>{formatNumber(item.download_last_month)}/mo</span>
+            <span>{formatNumber(item.download_last_month)}/{isNpmPackage ? 'wk' : 'mo'}</span>
           </a>
         {/if}
       </div>
       {#if item.download_total != undefined}
-        <a href="https://pypi.org/project/{item.name}/" target="_blank" rel="noopener noreferrer" class="package-card__downloads" title="Total downloads">
+        <a href={registryUrl} target="_blank" rel="noopener noreferrer" class="package-card__downloads" title="Total downloads">
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
             <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
             <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
@@ -242,7 +265,8 @@
   }
 
   .package-card__plone-versions,
-  .package-card__python-versions {
+  .package-card__python-versions,
+  .package-card__npm-info {
     display: flex;
     padding: 0.2em 0;
 
@@ -254,6 +278,15 @@
       &:hover {
         opacity: 0.8;
       }
+    }
+  }
+
+  .package-card__npm-info {
+    align-items: center;
+
+    .package-card__registry-label {
+      font-size: var(--font-size-sm, 0.9em);
+      padding: 0.2em 0.5em;
     }
   }
 

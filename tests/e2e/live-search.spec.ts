@@ -227,27 +227,24 @@ test.describe('Live Search - Browser Navigation', () => {
 		// Reset to home first to clear history from previous test
 		await searchPage.goto();
 		await page.waitForLoadState('networkidle');
-		await page.waitForTimeout(500);
 
 		// Perform first search
 		await searchPage.search('volto');
 		await page.waitForLoadState('networkidle');
-		await page.waitForTimeout(500);
 
 		// Perform second search
 		await searchPage.search('plone');
 		await page.waitForLoadState('networkidle');
-		await page.waitForTimeout(500);
 
-		// Go back then forward
+		// Go back - wait for input value to actually change
 		await page.goBack();
-		await page.waitForLoadState('networkidle');
-		await page.waitForTimeout(500);
-		await page.goForward();
-		await page.waitForLoadState('networkidle');
-		await page.waitForTimeout(500);
+		await expect(searchPage.searchInput).toHaveValue('volto', { timeout: 5000 });
 
-		// Verify the input has the forward search term
+		// Go forward - wait for input value to change to expected value
+		await page.goForward();
+		await expect(searchPage.searchInput).toHaveValue('plone', { timeout: 5000 });
+
+		// Final verification
 		const value = await searchPage.getSearchInputValue();
 		expect(value).toBe('plone');
 	});
