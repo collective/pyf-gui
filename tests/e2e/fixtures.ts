@@ -55,6 +55,15 @@ export class SearchPage {
 	}
 
 	/**
+	 * Type text as fast as possible — fires all keydown/keyup events with zero delay.
+	 * Unlike fill(), this triggers keyboard event handlers.
+	 */
+	async typeFast(term: string) {
+		await this.searchInput.click();
+		await this.searchInput.pressSequentially(term, { delay: 0 });
+	}
+
+	/**
 	 * Sample the search input value multiple times during a period
 	 * Returns array of values observed
 	 */
