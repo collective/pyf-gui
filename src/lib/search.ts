@@ -16,10 +16,12 @@ export let searchClient = new Client({
     'protocol': PUBLIC_SEARCH_PROTOCOL // For Typesense Cloud use https
   }],
   'apiKey': PUBLIC_SEARCH_API_KEY,
-  'connectionTimeoutSeconds': 2
+  'connectionTimeoutSeconds': 10
 })
 
 
+
+let searchGeneration = 0;
 
 export function doSearch(
   term?: string,
@@ -29,10 +31,14 @@ export function doSearch(
   sort: string = default_sort,
   language?: Language
 ) {
-  // Guard against concurrent requests
-  if (searchState.isLoading) {
-    return;
+  if (append) {
+    // For infinite scroll, use loading guard to prevent duplicate page loads
+    if (searchState.isLoading) return;
+  } else {
+    // For new searches, increment generation to invalidate in-flight searches
+    searchGeneration++;
   }
+  const myGeneration = searchGeneration;
 
   // Get current language from state if not provided
   const currentLanguage = language || searchState.language;
@@ -41,8 +47,6 @@ export function doSearch(
   // Map language to registry value
   const languageConfig = language_options.find(l => l.value === currentLanguage);
   const registryValue = languageConfig?.registry || 'pypi';
-
-  console.log(`filter: ${JSON.stringify(filter)}, page: ${page}, append: ${append}, language: ${currentLanguage}`)
 
   // Start with registry filter
   let filterString = `registry:=${registryValue}`;
@@ -54,7 +58,10 @@ export function doSearch(
     if (filter && filter.package_types.length > 0) {
       classifiers = filter.package_types;
     }
-    if (term == "" && (filter && (filter.package_types == undefined && filter.plone_versions == undefined))) { return }
+    if (term == "" && (filter && (filter.package_types == undefined && filter.plone_versions == undefined))) {
+      searchState.isLoading = false;
+      return;
+    }
     if (filter && (filter.package_types != undefined || filter.plone_versions != undefined)) {
       term = term || "*"
     }
@@ -149,9 +156,10 @@ export function doSearch(
     }
     searchRequests.searches.push(facetSearch as any)
   }
-  console.log("query:", searchRequests)
   searchClient.multiSearch.perform(searchRequests as any, commonSearchParams).then((searchResults: any) => {
-    console.log(searchResults)
+    // Discard results if a newer search was started
+    if (myGeneration !== searchGeneration) return;
+
     if (searchResults === undefined) {
       searchState.isLoading = false;
       return;
@@ -197,13 +205,13 @@ export function doSearch(
             }
             return 0;
           });
-          console.log(versions)
         }
       });
     }
 
     searchState.isLoading = false;
   }).catch((error: any) => {
+    if (myGeneration !== searchGeneration) return;
     console.error("Search error:", error);
     searchState.isLoading = false;
   });

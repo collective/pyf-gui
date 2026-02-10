@@ -161,11 +161,8 @@ test.describe('Live Search - Results Update', () => {
 	test('search results update after typing completes', async ({}, testInfo) => {
 		test.skip(testInfo.project.name === 'mobile', 'Mobile has different search UI');
 
-		// Search for a term
-		await searchPage.search('volto');
-
-		// Wait for results
-		await page.waitForLoadState('networkidle');
+		// Search and wait for results to render
+		await searchPage.searchAndWait('volto');
 
 		// Check that results contain relevant packages
 		const names = await searchPage.getPackageNames();
@@ -228,13 +225,11 @@ test.describe('Live Search - Browser Navigation', () => {
 		await searchPage.goto();
 		await page.waitForLoadState('networkidle');
 
-		// Perform first search
-		await searchPage.search('volto');
-		await page.waitForLoadState('networkidle');
+		// Perform first search and wait for URL to update
+		await searchPage.searchAndWait('volto');
 
-		// Perform second search
-		await searchPage.search('plone');
-		await page.waitForLoadState('networkidle');
+		// Perform second search and wait for URL to update
+		await searchPage.searchAndWait('plone');
 
 		// Go back - wait for input value to actually change
 		await page.goBack();
@@ -287,12 +282,20 @@ test.describe('Live Search - Edge Cases', () => {
 	test('clearing input updates URL correctly', async ({}, testInfo) => {
 		test.skip(testInfo.project.name === 'mobile', 'Mobile has different search UI');
 
-		// Search then clear
-		await searchPage.search('volto');
+		// Search and wait for results, then clear
+		await searchPage.searchAndWait('volto');
 		await searchPage.searchInput.clear();
-		await page.waitForTimeout(400);
 
-		// URL should not have a q parameter (or have q=* which is default)
+		// Wait for URL to drop the q parameter (debounce + goto)
+		await page.waitForFunction(
+			() => {
+				const url = new URL(window.location.href);
+				return !url.searchParams.has('q');
+			},
+			null,
+			{ timeout: 5000 }
+		);
+
 		const url = page.url();
 		const hasEmptyQ = !url.includes('q=') || url.includes('q=%2A') || url.includes('q=*');
 		expect(hasEmptyQ).toBe(true);

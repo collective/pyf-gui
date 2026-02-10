@@ -120,8 +120,8 @@ test.describe('Field Weight Verification', () => {
 		await searchPage.goto();
 		await expect(searchPage.packageCards.first()).toBeVisible();
 
-		// Search for "seo"
-		await searchPage.search('seo');
+		// Search and wait for results to render
+		await searchPage.searchAndWait('seo');
 
 		// Wait for relevance sort to be applied
 		await expect(searchPage.sortSelect).toHaveValue('_text_match:desc');

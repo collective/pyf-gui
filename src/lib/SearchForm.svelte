@@ -235,20 +235,26 @@
       const isRelevanceSort = urlParams.sort === relevance_sort_option.value;
 
       if (urlParams.hasExplicitSort) {
+        // Explicit sort in URL
         initializedFromUrl = true;
         if (hasActiveSearchTerm) {
           lastSearchTermWasActive = true;
         }
-      }
-
-      if (isRelevanceSort && !hasActiveSearchTerm) {
-        const savedSort = loadSortSetting();
-        searchState.sort = savedSort;
-      } else if (urlParams.sort !== default_sort) {
-        searchState.sort = urlParams.sort;
+        if (isRelevanceSort && !hasActiveSearchTerm) {
+          // Relevance sort but no search term - fall back
+          const savedSort = loadSortSetting();
+          searchState.sort = (savedSort === relevance_sort_option.value) ? default_sort : savedSort;
+        } else {
+          searchState.sort = urlParams.sort;
+        }
+      } else if (hasActiveSearchTerm) {
+        // Search term in URL but no explicit sort → auto-select relevance
+        searchState.sort = relevance_sort_option.value;
+        lastSearchTermWasActive = true;
       } else {
+        // No explicit sort, no search term → fall back to localStorage
         const savedSort = loadSortSetting();
-        searchState.sort = savedSort;
+        searchState.sort = (savedSort === relevance_sort_option.value) ? default_sort : savedSort;
       }
     } else {
       // Fall back to localStorage
@@ -256,7 +262,8 @@
       searchState.ploneVersions = savedSettings.ploneVersions;
       searchState.packageTypes = savedSettings.packageTypes;
       const savedSort = loadSortSetting();
-      searchState.sort = savedSort;
+      // Relevance sort requires an active search term - fall back to default without one
+      searchState.sort = (savedSort === relevance_sort_option.value) ? default_sort : savedSort;
     }
 
     searchState.sortInitialized = true;

@@ -159,9 +159,15 @@ test.describe('Search input consistency', () => {
 			await method.action();
 			await waitForSearchResults('plone');
 
-			// Switch to A-Z sort
+			// Switch to A-Z sort and wait for URL to reflect the change
 			await searchPage.selectSort('name_sortable:asc');
-			await page.waitForLoadState('networkidle');
+			await page.waitForFunction(
+				() => {
+					const url = new URL(window.location.href);
+					return url.searchParams.get('sort') === 'name_sortable:asc';
+				},
+				{ timeout: 10000, polling: 200 }
+			);
 			await searchPage.packageCards.first().waitFor({ timeout: 10000 });
 
 			// Reload from the current URL to get clean results

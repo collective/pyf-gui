@@ -88,8 +88,9 @@ export function serializeToUrl(state: UrlSearchState): URLSearchParams {
     }
   }
 
-  // Only add sort if different from default
-  if (state.sort && state.sort !== default_sort) {
+  // Add sort if different from default, or if explicitly set by the user
+  // (so a reload preserves the choice even when it matches the default)
+  if (state.sort && (state.sort !== default_sort || state.hasExplicitSort)) {
     params.set('sort', state.sort);
   }
 

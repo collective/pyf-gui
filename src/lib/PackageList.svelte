@@ -1,8 +1,11 @@
 <script lang="ts">
+  import { browser } from "$app/environment";
+  import { goto } from "$app/navigation";
   import { saveSortSetting } from "$lib/localStorage";
   import PackageItem from "$lib/PackageItem.svelte";
   import { doSearch, loadMore, resetPagination } from "$lib/search";
   import { searchState, getHasActiveSearch, getFilter } from "$lib/search-state.svelte";
+  import { serializeToUrl, buildUrlString, type UrlSearchState } from "$lib/urlParams";
   import { relevance_sort_option, sort_options } from "$lib/settings";
   import { onDestroy, onMount } from "svelte";
 
@@ -23,6 +26,20 @@
     if (target.value !== relevance_sort_option.value) {
       saveSortSetting(target.value);
     }
+    // Update URL to reflect new sort
+    if (browser && searchState.initialized) {
+      const state: UrlSearchState = {
+        searchTerm: searchState.term || '*',
+        ploneVersions: searchState.ploneVersions,
+        packageTypes: searchState.packageTypes,
+        sort: searchState.sort,
+        language: searchState.language,
+        hasExplicitSort: true
+      };
+      const params = serializeToUrl(state);
+      const urlString = buildUrlString(params);
+      goto(urlString || '/', { keepFocus: true, noScroll: true });
+    }
     // Trigger search with new sort
     resetPagination();
     doSearch(searchState.term, getFilter(), 1, false, searchState.sort, searchState.language);
@@ -34,7 +51,7 @@
   onMount(() => {
     observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && searchState.hasMore && !searchState.isLoading) {
+        if (entries[0].isIntersecting && searchState.hasMore && !searchState.isLoading && searchState.initialized) {
           loadMore(searchState.term, getFilter());
         }
       },

@@ -44,6 +44,26 @@ export class SearchPage {
 	}
 
 	/**
+	 * Search and wait for results to actually render.
+	 * More reliable than search() + waitForLoadState('networkidle')
+	 * because it waits for the DOM to update with new results.
+	 */
+	async searchAndWait(term: string, timeout: number = 10000) {
+		await this.searchInput.fill(term);
+		// Wait for URL to reflect the search term (debounce has fired)
+		await this.page.waitForFunction(
+			(expectedTerm) => {
+				const url = new URL(window.location.href);
+				return url.searchParams.get('q') === expectedTerm;
+			},
+			term,
+			{ timeout, polling: 100 }
+		);
+		// Wait for results to render
+		await this.packageCards.first().waitFor({ state: 'visible', timeout });
+	}
+
+	/**
 	 * Type text character by character with delay between each character
 	 * Useful for testing debounce behavior and live search
 	 */

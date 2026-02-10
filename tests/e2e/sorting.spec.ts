@@ -326,8 +326,8 @@ test.describe('Relevance Sorting Quality', () => {
 		await searchPage.goto();
 		await expect(searchPage.packageCards.first()).toBeVisible();
 
-		// Search for a specific package name
-		await searchPage.search('seo');
+		// Search and wait for results to render
+		await searchPage.searchAndWait('seo');
 
 		// Wait for relevance sort to be applied
 		await expect(searchPage.sortSelect).toHaveValue('_text_match:desc');
@@ -346,20 +346,14 @@ test.describe('Relevance Sorting Quality', () => {
 	test('relevant results rank above irrelevant ones', async ({}, testInfo) => {
 		test.skip(testInfo.project.name === 'mobile', 'Search input not visible on mobile');
 
-		await searchPage.goto();
+		// Navigate directly with search URL for a clean search
+		await searchPage.gotoWithParams('q=restapi&sort=_text_match%3Adesc');
 		await expect(searchPage.packageCards.first()).toBeVisible();
-
-		// Search for a term that should return results with restapi in the name
-		await searchPage.search('restapi');
-		await searchPage.page.waitForLoadState('networkidle');
-
-		await expect(searchPage.sortSelect).toHaveValue('_text_match:desc');
 
 		const packageNames = await searchPage.getPackageNames();
 		expect(packageNames.length).toBeGreaterThan(0);
 
 		// At least one of the top 5 results should be REST API-related
-		// (expanded from top 3 to handle normal search ranking variations)
 		const topNames = packageNames.slice(0, 5).map(n => n.toLowerCase());
 		const hasRelevantResult = topNames.some(name =>
 			name.includes('rest') || name.includes('api')
